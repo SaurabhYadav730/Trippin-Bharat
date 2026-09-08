@@ -1,0 +1,412 @@
+import type { DestinationData } from '../types/destination'
+
+export const shillongData: DestinationData = {
+  id: 'shillong',
+  slug: 'shillong',
+  name: 'Shillong',
+  state: 'Meghalaya',
+  tagline: 'Scotland of the East · Living Root Bridges · Cloud Treks & Waterfalls',
+  shortBio:
+    'Nestled in the lush East Khasi Hills of Meghalaya, Shillong is famed for its rolling pine-clad peaks, bio-engineered living root bridges grown across raging rivers, thunderous waterfalls, crystal-clear mountain streams, and vibrant indie rock music culture.',
+  heroBanner: '/images/places/living-root-bridge.jpg',
+  heroGallery: [
+    '/images/places/living-root-bridge.jpg',
+    '/images/places/nohkalikai-falls.jpg',
+    '/images/places/umiam-lake.jpg',
+    '/images/places/elephant-falls.jpg',
+  ],
+  bestSeason: 'September – May',
+  recommendedDays: '4–5 Days',
+  approxBudgetPerDay: {
+    budget: 1800,
+    comfort: 4200,
+    luxury: 14000,
+  },
+  weather: {
+    tempC: 19,
+    condition: 'Misty & Refreshing',
+    humidity: '68%',
+  },
+  tourismStatus: {
+    safetyScore: '4.9 / 5.0 (Exceptional Tourist Safety & Warm Hospitality)',
+    crowdLevel: 'Low',
+    peakHours: '11:00 AM – 3:30 PM (Waterfall trails)',
+  },
+  curatedForStyles: [
+    {
+      styleId: 'bridges',
+      styleTitle: 'Living Root Bridges & Waterfalls',
+      description:
+        'Centuries-old bio-engineered Ficus elastica bridges, thunderous Nohkalikai cascade, and rainforest river pools.',
+      recommendedPlaceIds: ['living-root-bridge', 'nohkalikai-falls', 'elephant-falls', 'umiam-lake', 'mawlynnong'],
+    },
+    {
+      styleId: 'lakes',
+      styleTitle: 'Pine Hills & Crystal Waters',
+      description:
+        'Serene boating on Umiam Barapani Lake, pine forest trails, and panoramic East Khasi plateau viewpoints.',
+      recommendedPlaceIds: ['umiam-lake', 'elephant-falls', 'living-root-bridge'],
+    },
+  ],
+  places: [
+    {
+      id: 'living-root-bridge',
+      name: 'Double Decker Living Root Bridge',
+      hindiName: 'डबल डेकर लिविंग रूट ब्रिज, नोंग्रियाट',
+      tagline: 'UNESCO-nominated bio-engineering marvel grown from living rubber fig tree roots',
+      category: 'nature',
+      categoryLabel: 'UNESCO Botanical Wonder',
+      rating: 4.9,
+      reviewCount: 28400,
+      images: [
+        '/images/places/living-root-bridge.jpg',
+        '/images/places/nohkalikai-falls.jpg',
+      ],
+      description:
+        'Located in Nongriat village near Cherrapunji, this extraordinary two-tier bridge was hand-guided across the Umshiang river by indigenous Khasi villagers using the living aerial roots of Ficus elastica trees. Unlike timber or steel, this living bridge grows stronger over time and has endured for over 250 years.',
+      coordinates: { lat: 25.2464, lng: 91.6705 },
+      entryFee: {
+        indian: 50,
+        foreign: 100,
+      },
+      timings: '6:00 AM – 5:00 PM (Requires a descent of ~3,500 stone steps into the tropical valley)',
+      bestTimeToVisit: 'Early morning (Start descending from Tyrna village by 7:00 AM to beat the afternoon heat)',
+      timeRequired: '5 – 7 Hours (Full Trek)',
+      isAsiVerified: false,
+      journeyLens: {
+        history:
+          'Created by the indigenous Khasi and Jaintia tribes who realized wooden bridges rotted quickly in Cherrapunji’s relentless monsoon rains. By training aerial roots through hollowed betel nut trunks, they created self-strengthening suspension structures.',
+        architecturalStyle: 'Indigenous Khasi Bio-Engineering (Living Architecture)',
+        architectureHighlights: [
+          'Two stacked living bridges crossing the turquoise river canyon at different heights',
+          'Root network capable of carrying 50+ people simultaneously without nails, steel, or concrete',
+          'Crystal turquoise river pool beneath the bridge filled with natural spa fish',
+        ],
+        legendsAndStories: [
+          'Khasi elders explain that the second upper tier was grown when extreme historic monsoon floods reached the height of the original lower bridge.',
+        ],
+        bestPhotoSpots: ['Stepped rock platform beside the lower bridge looking up through both tiers', 'Natural blue lagoon beneath the roots'],
+        audioGuideAvailable: false,
+      },
+      nearbyWithin1Km: [
+        { id: 'rainbow-falls', name: 'Rainbow Falls', category: 'experience', distanceKm: 1.8, travelTimeMin: 45 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'nohkalikai-falls', name: 'Nohkalikai Falls', category: 'attraction', distanceKm: 12.0, travelTimeMin: 40 },
+      ],
+    },
+    {
+      id: 'nohkalikai-falls',
+      name: 'Nohkalikai Falls',
+      hindiName: 'नोहकलिकाई जलप्रपात, चेरापूंजी',
+      tagline: 'India’s tallest plunge waterfall cascading 1,115 feet into an emerald-green pool',
+      category: 'waterfall',
+      categoryLabel: 'Tallest Plunge Waterfall',
+      rating: 4.8,
+      reviewCount: 39800,
+      images: [
+        '/images/places/nohkalikai-falls.jpg',
+        '/images/places/living-root-bridge.jpg',
+      ],
+      description:
+        'Dropping an astounding 1,115 feet (340 meters) from a dramatic rainforest plateau near Cherrapunji, Nohkalikai is the fourth-highest waterfall in the world. Fed entirely by the torrential rains of the Meghalaya highlands, it carves into a vivid emerald-turquoise plunge pool.',
+      coordinates: { lat: 25.2755, lng: 91.6845 },
+      entryFee: {
+        indian: 50,
+        foreign: 100,
+        camera: 30,
+      },
+      timings: '8:00 AM – 5:30 PM (Daily)',
+      bestTimeToVisit: '10:00 AM – 1:00 PM (Clear sunlight reveals the vibrant turquoise pool before afternoon fog rolls in)',
+      timeRequired: '1.5 Hours',
+      isAsiVerified: false,
+      journeyLens: {
+        history:
+          'In the Khasi language, "Noh Ka Likai" translates to "Jump of Ka Likai", commemorating the tragic folk legend of a grief-stricken Khasi mother.',
+        architecturalStyle: 'High-Altitude Limestone Plunge Gorge',
+        architectureHighlights: [
+          'Unbroken 340-meter vertical water sheer drop',
+          'Vivid emerald plunge pool colored by concentrated minerals and algae in mountain bedrock',
+          'Panoramic edge viewpoints overlooking the southern plains of Bangladesh in the distance',
+        ],
+        legendsAndStories: [
+          'Ka Likai jumped from the cliff after discovering that her jealous second husband had harmed her infant daughter. Today, her spirit is believed to guard the sacred falls.',
+        ],
+        bestPhotoSpots: ['Upper cliff viewing pavilion framing the entire vertical plunge', 'Lower stepped path during rainbow mist hours'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'sohra-market', name: 'Sohra Tribal Spice Market', category: 'experience', distanceKm: 2.5, travelTimeMin: 10 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'living-root-bridge', name: 'Living Root Bridge', category: 'attraction', distanceKm: 8.5, travelTimeMin: 30 },
+      ],
+    },
+    {
+      id: 'umiam-lake',
+      name: 'Umiam Lake (Barapani)',
+      hindiName: 'उमियम झील, शिलांग',
+      tagline: 'Expansive azure lake 15 km north of Shillong encircled by whispering pine forests',
+      category: 'lake',
+      categoryLabel: 'Lakeside & Water Sports',
+      rating: 4.7,
+      reviewCount: 32100,
+      images: [
+        '/images/places/umiam-lake.jpg',
+        '/images/places/elephant-falls.jpg',
+      ],
+      description:
+        'Created in the early 1960s by damming the Umiam River, this tranquil 220-square-kilometer reservoir resembles the lakes of Scotland and Switzerland. It offers speedboat rides, kayaking, luxury island camping, and serene pine forest walking trails.',
+      coordinates: { lat: 25.6667, lng: 91.9 },
+      entryFee: {
+        indian: 30,
+        foreign: 50,
+      },
+      timings: 'Open 24 Hours (Water Sports: 9:00 AM – 5:00 PM)',
+      bestTimeToVisit: '4:00 PM (Late afternoon golden hour as sun dips behind pine hills)',
+      timeRequired: '2 Hours',
+      isAsiVerified: false,
+      journeyLens: {
+        history:
+          'Constructed for hydroelectric power, Umiam quickly became Meghalaya’s premier ecological leisure destination and migratory bird wintering haven.',
+        architecturalStyle: 'Natural Mountain Catchment Basin with Pine Forest Peninsulas',
+        architectureHighlights: [
+          'Water sports complex offering speedboats, water scooters, and pedal cruises',
+          'Lumpongdeng island camp accessible only by wooden rowboat',
+        ],
+        legendsAndStories: [
+          'Khasi legend tells of two sisters who descended from heaven; one was lost on the journey, and the grief-stricken tears of the surviving sister formed this massive lake.',
+        ],
+        bestPhotoSpots: ['Panoramic viewpoint from the Guwahati-Shillong highway ridge', 'Wooden boat jetty at sunset'],
+        audioGuideAvailable: false,
+      },
+      nearbyWithin1Km: [
+        { id: 'ri-kynjai-resort', name: 'Ri Kynjai Khasi Heritage Resort', category: 'stay', distanceKm: 1.2, travelTimeMin: 5 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'shillong-peak', name: 'Shillong Peak Viewpoint', category: 'attraction', distanceKm: 18.0, travelTimeMin: 40 },
+      ],
+    },
+    {
+      id: 'elephant-falls',
+      name: 'Elephant Falls',
+      hindiName: 'एलीफेंट फॉल्स, शिलांग',
+      tagline: 'Famous three-tiered cascade nestled in fern-covered mountain ravines',
+      category: 'waterfall',
+      categoryLabel: 'Three-Tier Mountain Cascade',
+      rating: 4.6,
+      reviewCount: 27500,
+      images: [
+        '/images/places/elephant-falls.jpg',
+        '/images/places/umiam-lake.jpg',
+      ],
+      description:
+        'Located 12 km from Shillong city center, Elephant Falls is a magnificent three-step mountain waterfall. The British named it after a massive elephant-shaped rock near the falls that was later destroyed by the great 1897 Assam earthquake.',
+      coordinates: { lat: 25.5367, lng: 91.8258 },
+      entryFee: {
+        indian: 30,
+        foreign: 50,
+      },
+      timings: '9:00 AM – 5:00 PM (Daily)',
+      bestTimeToVisit: '10:30 AM (Sunlight filters through dense ferns and pine canopies)',
+      timeRequired: '1 Hour',
+      isAsiVerified: false,
+      journeyLens: {
+        history:
+          'The Khasi people historically called it "Ka Kshaid Lai Pateng Khohsiew", which means "The Three-Step Waterfall".',
+        architecturalStyle: 'Stepped Natural Stone Ravine',
+        architectureHighlights: [
+          'Well-maintained railed stone steps allowing travelers to view each of the three distinct tiers up close',
+          'Third tier: Broad, foaming curtain crashing into clear shallow mountain pools',
+        ],
+        legendsAndStories: [
+          'Local Khasi lore venerated the roaring spray as the laughter of mountain spirits residing in the upper Khasi ridges.',
+        ],
+        bestPhotoSpots: ['Base platform facing the third tier waterfall spray'],
+        audioGuideAvailable: false,
+      },
+      nearbyWithin1Km: [
+        { id: 'mattilang-park', name: 'Mattilang Amusement Park', category: 'experience', distanceKm: 0.8, travelTimeMin: 5 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'shillong-peak', name: 'Shillong Peak', category: 'attraction', distanceKm: 5.2, travelTimeMin: 15 },
+      ],
+    },
+    {
+      id: 'mawlynnong',
+      name: 'Mawlynnong Village',
+      hindiName: 'मावल्यान्नॉन्ग (एशिया का सबसे स्वच्छ गाँव)',
+      tagline: 'Acclaimed as "God’s Own Garden" and Asia’s Cleanest Village',
+      category: 'heritage',
+      categoryLabel: 'Asia\'s Cleanest Eco-Village',
+      rating: 4.8,
+      reviewCount: 24100,
+      images: [
+        '/images/places/mawlynnong.jpg',
+        '/images/places/living-root-bridge.jpg',
+      ],
+      description:
+        'Awarded the title of "Cleanest Village in Asia" by Discover India in 2003, Mawlynnong is a 100% literate, matriarchal Khasi community where every street is spotless. Houses feature conical bamboo dustbins, vibrant flowering orchids, and traditional tree-top sky walks.',
+      coordinates: { lat: 25.2017, lng: 91.8761 },
+      entryFee: {
+        indian: 50,
+        foreign: 100,
+      },
+      timings: '8:00 AM – 6:00 PM (Daily)',
+      bestTimeToVisit: '11:00 AM (Leisurely stroll through paved village flower alleys)',
+      timeRequired: '2 – 3 Hours',
+      isAsiVerified: false,
+      journeyLens: {
+        history:
+          'Community-driven cleanliness has been a voluntary village tradition for over a century, handed down from generation to generation.',
+        architecturalStyle: 'Indigenous Vernacular Thatched & Stone Architecture',
+        architectureHighlights: [
+          'Sky View 85-foot high bamboo tower overlooking the plains of Sylhet, Bangladesh',
+          'Single-decker living root bridge in neighboring Riwai village just 10 minutes away',
+          'Balanced Rock: A massive ancient boulder balancing precariously on a tiny stone base',
+        ],
+        legendsAndStories: [
+          'Children are taught from age three to sweep fallen leaves into bamboo cones, maintaining a completely plastic-free village ecosystem.',
+        ],
+        bestPhotoSpots: ['Village cobblestone pathway lined with hibiscus and orchids', 'Bamboo Sky View tree canopy bridge'],
+        audioGuideAvailable: false,
+      },
+      nearbyWithin1Km: [
+        { id: 'riwai-root-bridge', name: 'Riwai Living Root Bridge', category: 'attraction', distanceKm: 1.5, travelTimeMin: 6 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'dawki-river', name: 'Dawki Umngot Transparent River', category: 'experience', distanceKm: 19.0, travelTimeMin: 45 },
+      ],
+    },
+  ],
+  stays: [
+    {
+      id: 'ri-kynjai',
+      name: 'Ri Kynjai - Serenity by the Lake',
+      type: 'lakeview_resort',
+      typeLabel: 'Luxury Khasi Thatch Cottages on Umiam Lake',
+      rating: 4.9,
+      reviewsCount: 1600,
+      image: '/images/places/umiam-lake.jpg',
+      pricePerNight: 16500,
+      coordinates: { lat: 25.669, lng: 91.905 },
+      amenities: ['Panoramic Umiam Lake View', 'Traditional Khasi Herbal Spa', 'Sao Pho Wood-Fired Fine Dining', 'Pine Forest Eco-Treks'],
+      address: 'UCC Road, Umiam Lake, Ri Bhoi District, Meghalaya',
+      distanceToItineraryHighlights: [
+        { placeId: 'umiam-lake', placeName: 'Umiam Lake Watersports', distanceKm: 0.5, drivingTimeMin: 3 },
+        { placeId: 'elephant-falls', placeName: 'Elephant Falls', distanceKm: 24.0, drivingTimeMin: 50 },
+      ],
+    },
+  ],
+  foodSpots: [
+    {
+      id: 'dylans-cafe',
+      name: 'Dylan\'s Cafe Shillong',
+      cuisineType: 'Khasi Local & Contemporary Cafe',
+      type: 'cafe',
+      rating: 4.7,
+      priceForTwo: 750,
+      image: '/images/places/elephant-falls.jpg',
+      mustTryDishes: ['Khasi Smoked Pork Ribs', 'Waffles with Meghalaya Honey', 'Tungrymbai Platter', 'Artisanal Drip Coffee'],
+      specialty: 'Khasi roasted pork platters, handcrafted burgers & artisan drip coffee',
+      timings: '11:00 AM – 9:30 PM',
+      address: 'Risa Colony, Near Don Bosco, Shillong',
+      coordinates: { lat: 25.5682, lng: 91.8931 },
+      isVeg: false,
+    },
+  ],
+  experiences: [
+    {
+      id: 'dawki-crystal-boating',
+      title: 'Dawki Crystal-Clear River Boating',
+      category: 'adventure',
+      categoryLabel: 'River Adventure',
+      duration: '4 Hours',
+      price: 1200,
+      image: '/images/places/umiam-lake.jpg',
+      description: 'Float in wooden boats across the Umngot River where water is so transparent the boats appear to fly in mid-air.',
+      highlights: ['Glass-like turquoise water', 'Indo-Bangladesh border suspension bridge view', 'Fresh fish river lunch'],
+      timing: '8:00 AM – 1:00 PM',
+      location: 'Shnongpdeng & Dawki Riverfront',
+      rating: 4.9,
+    },
+  ],
+  defaultItinerary: [
+    {
+      dayNumber: 1,
+      themeTitle: 'Cloud Kingdom: Umiam Lake & Elephant Falls',
+      dateLabel: 'Day 01',
+      totalDistanceKm: 25.0,
+      totalTravelTimeMin: 60,
+      totalDaySpend: 500,
+      stops: [
+        {
+          id: 's-d1-1',
+          placeId: 'umiam-lake',
+          placeName: 'Umiam Lake Pine Promenade',
+          category: 'lake',
+          timeSlot: '9:30 AM – 12:30 PM',
+          durationMin: 180,
+          travelFromPrevMin: 0,
+          distanceFromPrevKm: 0,
+          estimatedCost: 50,
+          iconType: 'Waves',
+          notes: 'Speedboat cruise and pine forest walk.',
+          coordinates: { lat: 25.6667, lng: 91.9 },
+        },
+        {
+          id: 's-d1-2',
+          placeId: 'elephant-falls',
+          placeName: 'Elephant Falls 3-Tier Trail',
+          category: 'waterfall',
+          timeSlot: '2:30 PM – 4:30 PM',
+          durationMin: 120,
+          travelFromPrevMin: 45,
+          distanceFromPrevKm: 22.0,
+          estimatedCost: 30,
+          iconType: 'Mountain',
+          notes: 'Descend to the third tier spray pool.',
+          coordinates: { lat: 25.5367, lng: 91.8258 },
+        },
+      ],
+    },
+    {
+      dayNumber: 2,
+      themeTitle: 'Living Wonder: Nongriat Double Decker Root Bridge Trek',
+      dateLabel: 'Day 02',
+      totalDistanceKm: 59.0,
+      totalTravelTimeMin: 95,
+      totalDaySpend: 900,
+      stops: [
+        {
+          id: 's-d2-1',
+          placeId: 'living-root-bridge',
+          placeName: 'Double Decker Living Root Bridge',
+          category: 'nature',
+          timeSlot: '7:00 AM – 2:00 PM',
+          durationMin: 420,
+          travelFromPrevMin: 60,
+          distanceFromPrevKm: 45.0,
+          estimatedCost: 50,
+          iconType: 'Trees',
+          notes: '3,500 stone step descent through rainforest canyon.',
+          coordinates: { lat: 25.2464, lng: 91.6705 },
+        },
+        {
+          id: 's-d2-2',
+          placeId: 'nohkalikai-falls',
+          placeName: 'Nohkalikai Falls Observation Deck',
+          category: 'waterfall',
+          timeSlot: '3:30 PM – 5:30 PM',
+          durationMin: 120,
+          travelFromPrevMin: 35,
+          distanceFromPrevKm: 14.0,
+          estimatedCost: 50,
+          iconType: 'Waves',
+          notes: 'Witness the 1,115 ft plunge before evening mist rolls over the ridge.',
+          coordinates: { lat: 25.2755, lng: 91.6845 },
+        },
+      ],
+    },
+  ],
+}

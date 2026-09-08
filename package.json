@@ -1,0 +1,26 @@
+{
+  "name": "yatra-platform",
+  "version": "1.0.0",
+  "description": "Yātra — India's Intelligent Travel & Tourism Ecosystem (Smart India Hackathon 2026)",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "install:all": "npm install --prefix frontend && npm install --prefix backend"
+  },
+  "keywords": [
+    "tourism",
+    "india",
+    "smart-india-hackathon",
+    "sih-2026",
+    "itinerary-planner",
+    "react",
+    "express",
+    "typescript"
+  ],
+  "author": "Yātra Team",
+  "license": "MIT"
+}
