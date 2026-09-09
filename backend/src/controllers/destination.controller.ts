@@ -1,40 +1,56 @@
 import type { Request, Response } from 'express'
-import { seedDestinations } from '../data/seedData.js'
+import { DestinationService } from '../services/destination.service.js'
 
 export const destinationController = {
-  getAll(req: Request, res: Response) {
-    const list = Object.values(seedDestinations).map((d) => ({
-      id: d.id,
-      name: d.name,
-      slug: d.slug,
-      tagline: d.tagline,
-      heroImage: d.heroImage,
-      overview: d.overview,
-      idealDurationDays: d.idealDurationDays,
-      bestSeason: d.bestSeason,
-      placesCount: d.places.length,
-      staysCount: d.stays.length,
-    }))
-    res.json({ success: true, count: list.length, data: list })
-  },
-
-  getBySlug(req: Request, res: Response) {
-    const slug = (req.params.slug || '').toLowerCase()
-    const dest = seedDestinations[slug]
-    if (!dest) {
-      // Fallback fuzzy match
-      const found = Object.values(seedDestinations).find((d) => d.slug.includes(slug) || d.name.toLowerCase().includes(slug))
-      if (found) {
-        return res.json({ success: true, data: found })
-      }
-      return res.status(404).json({ success: false, message: `Destination "${slug}" not found` })
+  async getAll(req: Request, res: Response) {
+    try {
+      const search = req.query.search as string | undefined
+      const featured = req.query.featured === 'true'
+      const list = await DestinationService.getAllDestinations({ search, featured })
+      res.json({ success: true, count: list.length, data: list })
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message || 'Failed to fetch destinations' })
     }
-    res.json({ success: true, data: dest })
   },
 
-  getPlaces(req: Request, res: Response) {
-    const slug = (req.params.slug || '').toLowerCase()
-    const dest = seedDestinations[slug] || seedDestinations['udaipur']
-    res.json({ success: true, destination: dest.name, count: dest.places.length, data: dest.places })
-  }
+  async getBySlug(req: Request, res: Response) {
+    try {
+      const slug = (req.params.slug || '').toLowerCase()
+      const dest = await DestinationService.getDestinationBySlug(slug)
+
+      if (!dest) {
+        return res.status(404).json({ success: false, message: `Destination "${slug}" not found` })
+      }
+
+      res.json(dest) // Returns full DestinationData directly matching frontend API contract
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message || 'Failed to fetch destination' })
+    }
+  },
+
+  async getPlaces(req: Request, res: Response) {
+    try {
+      const slug = (req.params.slug || '').toLowerCase()
+      const places = await DestinationService.getPlacesForDestination(slug)
+      res.json({ success: true, destination: slug, count: places.length, data: places })
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message || 'Failed to fetch places' })
+    }
+  },
+
+  async getPlaceDetails(req: Request, res: Response) {
+    try {
+      const slug = (req.params.slug || '').toLowerCase()
+      const placeId = req.params.placeId
+      const place = await DestinationService.getPlaceDetails(slug, placeId)
+
+      if (!place) {
+        return res.status(404).json({ success: false, message: `Place "${placeId}" not found in ${slug}` })
+      }
+
+      res.json(place)
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message || 'Failed to fetch place details' })
+    }
+  },
 }

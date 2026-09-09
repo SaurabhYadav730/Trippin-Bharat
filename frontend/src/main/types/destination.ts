@@ -52,7 +52,7 @@ export interface StayHotel {
   name: string
   type: 'heritage_palace' | 'boutique_haveli' | 'lakeview_resort' | 'budget_homestay' | 'luxury_palace' | 'boutique_heritage' | 'resort_lakeside' | string
   typeLabel?: string
-  tier?: 'budget' | 'comfort' | 'luxury'
+  tier?: 'budget' | 'comfort' | 'luxury' | 'ultra_luxury'
   rating: number
   reviewsCount?: number
   image: string

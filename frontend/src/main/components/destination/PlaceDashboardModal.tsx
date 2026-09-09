@@ -27,6 +27,7 @@ interface PlaceDashboardModalProps {
   place: Place | null
   onClose: () => void
   onAddToItinerary?: (place: Place) => void
+  isAdded?: boolean
   onSelectNearby?: (placeId: string) => void
 }
 
@@ -34,20 +35,17 @@ export default function PlaceDashboardModal({
   place,
   onClose,
   onAddToItinerary,
+  isAdded = false,
   onSelectNearby,
 }: PlaceDashboardModalProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'journey_lens' | 'nearby' | 'visiting_info'>('journey_lens')
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
-  const [addedSuccess, setAddedSuccess] = useState(false)
-
   if (!place) return null
 
   const handleAdd = () => {
-    if (onAddToItinerary) {
+    if (onAddToItinerary && !isAdded) {
       onAddToItinerary(place)
-      setAddedSuccess(true)
-      setTimeout(() => setAddedSuccess(false), 2200)
     }
   }
 
@@ -183,15 +181,17 @@ export default function PlaceDashboardModal({
             {/* Quick Add To Itinerary CTA */}
             <button
               onClick={handleAdd}
+              disabled={isAdded}
+              aria-pressed={isAdded}
               className={`shrink-0 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
-                addedSuccess
-                  ? 'bg-emerald-600 text-white'
+                isAdded
+                  ? 'bg-emerald-600 text-white cursor-default'
                   : 'bg-[#E5293E] hover:bg-[#D01D32] text-white shadow-xs'
               }`}
             >
-              {addedSuccess ? (
+              {isAdded ? (
                 <>
-                  <Check size={16} /> Added to Itinerary!
+                  <Check size={16} /> Added to My Journey
                 </>
               ) : (
                 <>

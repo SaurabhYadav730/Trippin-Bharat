@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import {
   Sparkles,
   MapPin,
@@ -68,6 +70,103 @@ import TripExportModal from '../components/planner/TripExportModal'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
+function formatScheduleTime(totalMinutes: number): string {
+  const normalizedMinutes = Math.max(0, totalMinutes)
+  const hour24 = Math.floor(normalizedMinutes / 60) % 24
+  const minutes = normalizedMinutes % 60
+  const period = hour24 >= 12 ? 'PM' : 'AM'
+  const hour12 = hour24 % 12 || 12
+  return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`
+}
+
+function parseScheduleTime(time: string): number {
+  const match = time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+  if (!match) {
+    const [hour, minute] = time.split(':').map(Number)
+    return Number.isFinite(hour) && Number.isFinite(minute) ? hour * 60 + minute : 8 * 60 + 30
+  }
+
+  let hour = Number(match[1]) % 12
+  if (match[3].toUpperCase() === 'PM') hour += 12
+  return hour * 60 + Number(match[2])
+}
+
+function getTrafficMultiplier(departureMinute: number): number {
+  const hour = Math.floor(departureMinute / 60) % 24
+  if ((hour >= 7 && hour < 10) || (hour >= 17 && hour < 21)) return 1.35
+  if (hour >= 10 && hour < 16) return 1.15
+  return 1
+}
+
+function getTrafficLabel(departureMinute: number): string {
+  const hour = Math.floor(departureMinute / 60) % 24
+  if ((hour >= 7 && hour < 10) || (hour >= 17 && hour < 21)) return 'Heavy traffic'
+  if (hour >= 10 && hour < 16) return 'Moderate traffic'
+  return 'Light traffic'
+}
+
+function recalculateStopSchedule(
+  stops: PlannedStop[],
+  dayStartTime: string,
+  baseCoord: { lat: number; lng: number },
+  transportMode: TransportMode,
+  preferredStart?: { index: number; time: string }
+): { stops: PlannedStop[]; totalDistanceKm: number; totalTravelTimeMin: number } {
+  let currentMinute = parseScheduleTime(dayStartTime)
+  let previousCoord = baseCoord
+  let totalDistanceKm = 0
+  let totalTravelTimeMin = 0
+
+  const recalculatedStops = stops.map((stop, index) => {
+    const stopCoord = stop.coordinates || previousCoord
+    const distanceKm = RouteOptimizationService.calculateDistanceKm(previousCoord, stopCoord)
+    const baseTravelMinutes = RouteOptimizationService.estimateTransitMinutes(distanceKm, transportMode)
+    const travelMinutes = Math.ceil(baseTravelMinutes * getTrafficMultiplier(currentMinute))
+    const preferredMinute =
+      preferredStart?.index === index ? parseScheduleTime(preferredStart.time) : undefined
+    const startMinute = preferredMinute ?? currentMinute + travelMinutes
+    const endMinute = startMinute + stop.durationMin
+
+    currentMinute = endMinute
+    previousCoord = stopCoord
+    totalDistanceKm += distanceKm
+    totalTravelTimeMin += travelMinutes
+    return {
+      ...stop,
+      travelFromPrevMin: travelMinutes,
+      distanceFromPrevKm: distanceKm,
+      startTime: formatScheduleTime(startMinute),
+      endTime: formatScheduleTime(endMinute),
+      timeSlot: `${formatScheduleTime(startMinute)} – ${formatScheduleTime(endMinute)}`,
+    }
+  })
+
+  const returnDistanceKm = RouteOptimizationService.calculateDistanceKm(previousCoord, baseCoord)
+  totalDistanceKm += returnDistanceKm
+  totalTravelTimeMin += RouteOptimizationService.estimateTransitMinutes(returnDistanceKm, transportMode)
+
+  return {
+    stops: recalculatedStops,
+    totalDistanceKm: Number(totalDistanceKm.toFixed(1)),
+    totalTravelTimeMin,
+  }
+}
+
+function getTimeInputValue(time: string): string {
+  const minutes = parseScheduleTime(time)
+  return `${Math.floor(minutes / 60).toString().padStart(2, '0')}:${(minutes % 60)
+    .toString()
+    .padStart(2, '0')}`
+}
+
+function getScheduleMinutes(time: string): number {
+  const match = time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+  if (!match) return Number.MAX_SAFE_INTEGER
+  let hour = Number(match[1]) % 12
+  if (match[3].toUpperCase() === 'PM') hour += 12
+  return hour * 60 + Number(match[2])
+}
+
 export default function BuildTripPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -82,6 +181,7 @@ export default function BuildTripPage() {
   // If destination is already provided (e.g. Rishikesh), start directly in generated mode
   const [currentStep, setCurrentStep] = useState<number>(hasInitialDest ? 2 : 1)
   const [isGenerated, setIsGenerated] = useState<boolean>(false)
+  const [generationError, setGenerationError] = useState<string | null>(null)
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null)
   const [isLoadingDest, setIsLoadingDest] = useState<boolean>(true)
   const [rightPanelTab, setRightPanelTab] = useState<'flow' | 'dining' | 'stays'>('flow')
@@ -114,7 +214,130 @@ export default function BuildTripPage() {
   const [plannedTrip, setPlannedTrip] = useState<PlannedTrip | null>(null)
   const [activeDayIdx, setActiveDayIdx] = useState<number>(0)
   const [selectedMapPinId, setSelectedMapPinId] = useState<string | null>(null)
+  const [isMapExpanded, setIsMapExpanded] = useState(false)
+  const [isSatelliteView, setIsSatelliteView] = useState(false)
+  const [routePreference, setRoutePreference] = useState<'shortest' | 'less_traffic'>('less_traffic')
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const mapInstanceRef = useRef<L.Map | null>(null)
+  const mapRouteLayerRef = useRef<L.LayerGroup | null>(null)
+  const mapDirectionLayerRef = useRef<L.LayerGroup | null>(null)
+  const mapRoadLayerRef = useRef<L.TileLayer | null>(null)
+  const mapSatelliteLayerRef = useRef<L.TileLayer | null>(null)
+  const routeLineRef = useRef<L.Polyline | null>(null)
+  const [startedDays, setStartedDays] = useState<Record<number, boolean>>({})
+  const [currentTime, setCurrentTime] = useState(() => new Date())
+  const [visitedAt, setVisitedAt] = useState<Record<string, string>>({})
   const [mobileTab, setMobileTab] = useState<'itinerary' | 'map'>('itinerary')
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!plannedTrip || !startedDays[activeDayIdx]) return
+    const day = plannedTrip.days[activeDayIdx]
+    const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes()
+    const newlyVisited = day.stops.filter(
+      (stop) => !visitedAt[stop.id] && !stop.isMealStop && nowMinutes > getScheduleMinutes(stop.endTime)
+    )
+    if (newlyVisited.length === 0) return
+
+    const actualTime = currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    const updatedDays = [...plannedTrip.days]
+    updatedDays[activeDayIdx] = {
+      ...day,
+      stops: day.stops.map((stop) =>
+        newlyVisited.some((visited) => visited.id === stop.id)
+          ? {
+              ...stop,
+              endTime: actualTime,
+              timeSlot: `${formatScheduleTime(parseScheduleTime(stop.startTime || stop.timeSlot))} – ${actualTime} (Visited)`,
+            }
+          : stop
+      ),
+    }
+    setPlannedTrip({ ...plannedTrip, days: updatedDays })
+    setVisitedAt((previous) => ({
+      ...previous,
+      ...Object.fromEntries(newlyVisited.map((stop) => [stop.id, actualTime])),
+    }))
+  }, [currentTime, plannedTrip, activeDayIdx, startedDays, visitedAt])
+
+  const startCurrentDay = () => {
+    if (!plannedTrip) return
+    const now = new Date()
+    const currentDay = plannedTrip.days[activeDayIdx]
+    if (!currentDay) return
+    const baseCoord =
+      plannedTrip.selectedHotel?.coordinates ||
+      currentDay.stops[0]?.coordinates ||
+      { lat: 26.9124, lng: 75.7873 }
+    const startTime = `${now.getHours().toString().padStart(2, '0')}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`
+    const recalculatedSchedule = recalculateStopSchedule(
+      currentDay.stops,
+      startTime,
+      baseCoord,
+      transportMode
+    )
+    const updatedDays = [...plannedTrip.days]
+    updatedDays[activeDayIdx] = {
+      ...currentDay,
+      startTime: formatScheduleTime(parseScheduleTime(startTime)),
+      stops: recalculatedSchedule.stops,
+      totalDistanceKm: recalculatedSchedule.totalDistanceKm,
+      totalTravelTimeMin: recalculatedSchedule.totalTravelTimeMin,
+      totalSightseeingTimeMin: recalculatedSchedule.stops.reduce(
+        (total, stop) => total + stop.durationMin,
+        0
+      ),
+    }
+
+    setPlannedTrip({ ...plannedTrip, days: updatedDays })
+    setStartedDays((previous) => ({ ...previous, [activeDayIdx]: true }))
+    setCurrentTime(now)
+  }
+
+  const liveDay = plannedTrip?.days[activeDayIdx]
+  const liveNowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes()
+  const currentLiveStopIndex =
+    startedDays[activeDayIdx] && liveDay
+      ? liveDay.stops.findIndex(
+          (stop) => !visitedAt[stop.id] && liveNowMinutes <= getScheduleMinutes(stop.endTime)
+        )
+      : -1
+  const currentLiveStopId =
+    currentLiveStopIndex >= 0 ? liveDay?.stops[currentLiveStopIndex]?.id : undefined
+
+  const formatLiveClock = currentTime.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+  const liveCurrentPlace =
+    liveDay && currentLiveStopIndex >= 0
+      ? destinationData?.places.find((place) => place.id === liveDay.stops[currentLiveStopIndex]?.placeId)
+      : undefined
+  const nearbyLowerCrowdSuggestion =
+    liveCurrentPlace && destinationData
+      ? destinationData.places
+          .filter((place) => place.id !== liveCurrentPlace.id)
+          .map((place) => ({
+            place,
+            distanceKm: RouteOptimizationService.calculateDistanceKm(
+              liveCurrentPlace.coordinates,
+              place.coordinates
+            ),
+          }))
+          .filter(({ place, distanceKm }) =>
+            distanceKm <= 5 &&
+            /quiet|peaceful|calm|early morning|late afternoon|morning/i.test(place.bestTimeToVisit)
+          )
+          .sort((a, b) => a.distanceKm - b.distanceKm)[0]
+      : undefined
 
   // ── Modals State ──
   const [showExplanationModal, setShowExplanationModal] = useState<boolean>(false)
@@ -145,39 +368,6 @@ export default function BuildTripPage() {
         const defaultHotelId = data.stays.length > 0 ? data.stays[0].id : ''
         if (defaultHotelId) {
           setSelectedHotelId(defaultHotelId)
-        }
-
-        // If user arrived from a destination page (e.g. Rishikesh), IMMEDIATELY design the trip!
-        // Do NOT show the destination picker grid (step 1).
-        if (hasInitialDest || selectedDestSlug) {
-          const defaultPerDay = 2400
-          const autoBudget = defaultPerDay * (initialDaysQuery || 2)
-          const autoRequest: UserTripRequest = {
-            destinationSlug: data.slug,
-            destinationName: data.name,
-            daysCount: initialDaysQuery || 2,
-            dailyTime: {
-              startTime: '08:30',
-              endTime: '20:00',
-              bufferMinutes: 30,
-            },
-            budget: {
-              amount: autoBudget,
-              mode: 'total',
-              tier: 'smart_budget',
-            },
-            transport: 'mixed',
-            travelStyles: ['Heritage & History', 'Architecture', 'Local Food'],
-            selectedPlaces: initialSelections,
-            startLocationType: 'hotel',
-            selectedHotelId: defaultHotelId,
-            includeFoodStops: true,
-          }
-
-          const trip = TripPlanningService.planTrip(data, autoRequest)
-          setPlannedTrip(trip)
-          setIsGenerated(true)
-          setActiveDayIdx(0)
         }
 
         setIsLoadingDest(false)
@@ -321,49 +511,79 @@ export default function BuildTripPage() {
   const handleBuildJourney = () => {
     if (!destinationData) return
 
-    // 1. Validate Capacity Constraints (Requirements 11, 16, 54)
-    const validation = TimeConstraintService.validateConstraints(
-      selectedPlaces,
-      destinationData.places,
-      daysCount,
-      dailyTime
-    )
+    try {
+      // 1. Validate Capacity Constraints (Requirements 11, 16, 54)
+      const validation = TimeConstraintService.validateConstraints(
+        selectedPlaces,
+        destinationData.places,
+        daysCount,
+        dailyTime
+      )
 
-    if (!validation.isFeasible) {
-      setConflictData(validation)
-      setShowConflictModal(true)
-      return
+      if (!validation.isFeasible) {
+        setConflictData(validation)
+        setShowConflictModal(true)
+        return
+      }
+
+      // 2. Generate Trip via TripPlanningService
+      executeTripGeneration()
+    } catch (err) {
+      console.error('Trip validation failed:', err)
+      setIsGenerated(false)
+      setGenerationError('We could not validate this trip. Please review your selections and try again.')
     }
-
-    // 2. Generate Trip via TripPlanningService
-    executeTripGeneration()
   }
 
   const executeTripGeneration = () => {
     if (!destinationData) return
-    const request: UserTripRequest = {
-      destinationSlug: destinationData.slug,
-      destinationName: destinationData.name,
-      daysCount,
-      dailyTime,
-      budget: {
-        amount: resolvedBudgetAmount,
-        mode: budgetMode,
-        tier: budgetTier,
-      },
-      transport: transportMode,
-      travelStyles: selectedStyles,
-      selectedPlaces,
-      startLocationType: 'hotel',
-      selectedHotelId,
-      includeFoodStops,
+
+    setIsGenerated(false)
+
+    // Guard: require at least one place to be selected
+    if (Object.keys(selectedPlaces).length === 0) {
+      setGenerationError('Please select at least one sight before building your journey.')
+      return
     }
 
-    const trip = TripPlanningService.planTrip(destinationData, request)
-    setPlannedTrip(trip)
-    setIsGenerated(true)
-    setActiveDayIdx(0)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    try {
+      setGenerationError(null)
+      const request: UserTripRequest = {
+        destinationSlug: destinationData.slug,
+        destinationName: destinationData.name,
+        daysCount,
+        dailyTime,
+        budget: {
+          amount: resolvedBudgetAmount,
+          mode: budgetMode,
+          tier: budgetTier,
+        },
+        transport: transportMode,
+        travelStyles: selectedStyles,
+        selectedPlaces,
+        startLocationType: 'hotel',
+        selectedHotelId,
+        includeFoodStops,
+      }
+
+      const trip = TripPlanningService.planTrip(destinationData, request)
+
+      // Guard: ensure at least one day with stops was generated
+      const hasStops = trip.days.some((d) => d.stops.length > 0)
+      if (!hasStops) {
+        setGenerationError('No stops could be scheduled. Try selecting more sights or extending your trip duration.')
+        return
+      }
+
+      setGenerationError(null)
+      setPlannedTrip(trip)
+      setIsGenerated(true)
+      setActiveDayIdx(0)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (err) {
+      console.error('Trip generation failed:', err)
+      setGenerationError('Something went wrong while building your trip. Please try again.')
+    }
   }
 
   // ── Quick Modifiers Without Re-Entering Wizard ──
@@ -460,9 +680,90 @@ export default function BuildTripPage() {
     stops[stopIdx] = stops[targetIdx]
     stops[targetIdx] = temp
 
-    // Recalculate timeslots
+    const baseCoord =
+      plannedTrip.selectedHotel?.coordinates ||
+      currentDay.stops[0]?.coordinates ||
+      { lat: 26.9124, lng: 75.7873 }
+    const recalculatedSchedule = recalculateStopSchedule(
+      stops,
+      dailyTime.startTime,
+      baseCoord,
+      transportMode
+    )
     const updatedDays = [...plannedTrip.days]
-    updatedDays[activeDayIdx].stops = stops
+    updatedDays[activeDayIdx].stops = recalculatedSchedule.stops
+    updatedDays[activeDayIdx].totalDistanceKm = recalculatedSchedule.totalDistanceKm
+    updatedDays[activeDayIdx].totalTravelTimeMin = recalculatedSchedule.totalTravelTimeMin
+    updatedDays[activeDayIdx].totalSightseeingTimeMin = recalculatedSchedule.stops.reduce(
+      (total, stop) => total + stop.durationMin,
+      0
+    )
+    setPlannedTrip({ ...plannedTrip, days: updatedDays })
+  }
+
+  const handleChangeStopTime = (stopIdx: number, time: string) => {
+    if (!plannedTrip) return
+    const currentDay = plannedTrip.days[activeDayIdx]
+    if (!currentDay) return
+
+    const stops = [...currentDay.stops]
+    const baseCoord =
+      plannedTrip.selectedHotel?.coordinates ||
+      currentDay.stops[0]?.coordinates ||
+      { lat: 26.9124, lng: 75.7873 }
+    const recalculatedSchedule = recalculateStopSchedule(
+      stops,
+      dailyTime.startTime,
+      baseCoord,
+      transportMode,
+      { index: stopIdx, time }
+    )
+    const updatedDays = [...plannedTrip.days]
+    updatedDays[activeDayIdx] = {
+      ...currentDay,
+      stops: recalculatedSchedule.stops,
+      totalDistanceKm: recalculatedSchedule.totalDistanceKm,
+      totalTravelTimeMin: recalculatedSchedule.totalTravelTimeMin,
+      totalSightseeingTimeMin: recalculatedSchedule.stops.reduce(
+        (total, stop) => total + stop.durationMin,
+        0
+      ),
+    }
+    setPlannedTrip({ ...plannedTrip, days: updatedDays })
+  }
+
+  const handleChangeStopDuration = (stopIdx: number, durationValue: string) => {
+    if (!plannedTrip) return
+    const durationMin = Math.max(15, Math.min(720, Number(durationValue)))
+    if (!Number.isFinite(durationMin)) return
+
+    const currentDay = plannedTrip.days[activeDayIdx]
+    if (!currentDay) return
+    const stops = currentDay.stops.map((stop, index) =>
+      index === stopIdx ? { ...stop, durationMin } : stop
+    )
+    const baseCoord =
+      plannedTrip.selectedHotel?.coordinates ||
+      currentDay.stops[0]?.coordinates ||
+      { lat: 26.9124, lng: 75.7873 }
+    const recalculatedSchedule = recalculateStopSchedule(
+      stops,
+      dailyTime.startTime,
+      baseCoord,
+      transportMode,
+      { index: stopIdx, time: currentDay.stops[stopIdx].startTime }
+    )
+    const updatedDays = [...plannedTrip.days]
+    updatedDays[activeDayIdx] = {
+      ...currentDay,
+      stops: recalculatedSchedule.stops,
+      totalDistanceKm: recalculatedSchedule.totalDistanceKm,
+      totalTravelTimeMin: recalculatedSchedule.totalTravelTimeMin,
+      totalSightseeingTimeMin: recalculatedSchedule.stops.reduce(
+        (total, stop) => total + stop.durationMin,
+        0
+      ),
+    }
     setPlannedTrip({ ...plannedTrip, days: updatedDays })
   }
 
@@ -638,41 +939,213 @@ export default function BuildTripPage() {
   const coordsList = activeDayStops
     .map((s) => s.coordinates)
     .filter(Boolean) as { lat: number; lng: number }[]
+  const currentTrafficMinute = currentTime.getHours() * 60 + currentTime.getMinutes()
+  const currentTrafficMultiplier = getTrafficMultiplier(currentTrafficMinute)
+  const currentTrafficLabel = getTrafficLabel(currentTrafficMinute)
 
-  const bounds = useMemo(() => {
-    if (coordsList.length === 0) {
-      return { minLat: 26.8, maxLat: 27.2, minLng: 75.7, maxLng: 75.9 }
+  useEffect(() => {
+    return () => {
+      mapInstanceRef.current?.remove()
+      mapInstanceRef.current = null
+      mapRouteLayerRef.current = null
+      mapDirectionLayerRef.current = null
+      mapRoadLayerRef.current = null
+      mapSatelliteLayerRef.current = null
+      routeLineRef.current = null
     }
-    let minLat = Infinity,
-      maxLat = -Infinity,
-      minLng = Infinity,
-      maxLng = -Infinity
-    coordsList.forEach((c) => {
-      if (c.lat < minLat) minLat = c.lat
-      if (c.lat > maxLat) maxLat = c.lat
-      if (c.lng < minLng) minLng = c.lng
-      if (c.lng > maxLng) maxLng = c.lng
+  }, [])
+
+  useEffect(() => {
+    if (!isGenerated || !plannedTrip) {
+      mapInstanceRef.current?.remove()
+      mapInstanceRef.current = null
+      mapRouteLayerRef.current = null
+      mapDirectionLayerRef.current = null
+      mapRoadLayerRef.current = null
+      mapSatelliteLayerRef.current = null
+      routeLineRef.current = null
+      return
+    }
+
+    if (!mapContainerRef.current) return
+    const routeRequestController = new AbortController()
+
+    if (mapInstanceRef.current && mapInstanceRef.current.getContainer() !== mapContainerRef.current) {
+      mapInstanceRef.current.remove()
+      mapInstanceRef.current = null
+      mapRouteLayerRef.current = null
+      mapDirectionLayerRef.current = null
+      mapRoadLayerRef.current = null
+      mapSatelliteLayerRef.current = null
+      routeLineRef.current = null
+    }
+
+    if (!mapInstanceRef.current) {
+      mapInstanceRef.current = L.map(mapContainerRef.current, {
+        zoomControl: true,
+        attributionControl: true,
+      })
+      mapRoadLayerRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      })
+      mapSatelliteLayerRef.current = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+          maxZoom: 19,
+        }
+      )
+      mapRoadLayerRef.current.addTo(mapInstanceRef.current)
+      mapRouteLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current)
+      mapDirectionLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current)
+    }
+
+    const map = mapInstanceRef.current
+    const routeLayer = mapRouteLayerRef.current
+    const directionLayer = mapDirectionLayerRef.current
+    const roadLayer = mapRoadLayerRef.current
+    const satelliteLayer = mapSatelliteLayerRef.current
+    if (!routeLayer || !directionLayer || !roadLayer || !satelliteLayer) {
+      return () => routeRequestController.abort()
+    }
+    if (isSatelliteView) {
+      roadLayer.removeFrom(map)
+      satelliteLayer.addTo(map)
+    } else {
+      satelliteLayer.removeFrom(map)
+      roadLayer.addTo(map)
+    }
+    window.requestAnimationFrame(() => {
+      map.invalidateSize()
+      window.setTimeout(() => map.invalidateSize(), 150)
     })
-    // Add margin
-    const latMargin = Math.max(0.015, (maxLat - minLat) * 0.2)
-    const lngMargin = Math.max(0.015, (maxLng - minLng) * 0.2)
-    return {
-      minLat: minLat - latMargin,
-      maxLat: maxLat + latMargin,
-      minLng: minLng - lngMargin,
-      maxLng: maxLng + lngMargin,
-    }
-  }, [coordsList])
+    routeLayer.clearLayers()
+    directionLayer.clearLayers()
 
-  const getPinPct = (coords?: { lat: number; lng: number }) => {
-    if (!coords) return { x: 50, y: 50 }
-    const x = ((coords.lng - bounds.minLng) / (bounds.maxLng - bounds.minLng)) * 100
-    const y = 100 - ((coords.lat - bounds.minLat) / (bounds.maxLat - bounds.minLat)) * 100
-    return {
-      x: Math.min(Math.max(x, 10), 90),
-      y: Math.min(Math.max(y, 12), 88),
+    const validStops = activeDayStops.filter(
+      (stop) =>
+        stop.coordinates &&
+        Number.isFinite(stop.coordinates.lat) &&
+        Number.isFinite(stop.coordinates.lng)
+    )
+    if (validStops.length === 0) {
+      map.setView([26.9124, 75.7873], 12)
+      return () => routeRequestController.abort()
     }
-  }
+
+    const routePoints = validStops.map((stop) => [stop.coordinates!.lat, stop.coordinates!.lng] as [number, number])
+    const addDirectionPointers = (points: Array<[number, number]>) => {
+      if (points.length < 2) return
+      const pointerIndexes = [...new Set([
+        Math.floor(points.length * 0.3),
+        Math.floor(points.length * 0.6),
+        Math.floor(points.length * 0.85),
+      ])].filter((index) => index > 0 && index < points.length)
+
+      pointerIndexes.forEach((index) => {
+        const previous = points[index - 1]
+        const current = points[index]
+        const previousPoint = map.latLngToLayerPoint(previous)
+        const currentPoint = map.latLngToLayerPoint(current)
+        const angle = (Math.atan2(currentPoint.y - previousPoint.y, currentPoint.x - previousPoint.x) * 180) / Math.PI
+        L.marker(current, {
+          icon: L.divIcon({
+            className: '',
+            html: `<div style="width:26px;height:26px;border-radius:9999px;background:#2563eb;border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);transform:rotate(${angle}deg)">➜</div>`,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13],
+          }),
+          interactive: false,
+        }).addTo(directionLayer)
+      })
+    }
+
+    routeLineRef.current = L.polyline(routePoints, {
+      color: '#2563eb',
+      weight: 5,
+      opacity: 0.85,
+    }).addTo(routeLayer)
+    addDirectionPointers(routePoints)
+
+    validStops.forEach((stop, stopIndex) => {
+      const isMealStop = stop.isMealStop
+      const isSelected = selectedMapPinId === stop.id
+      const marker = L.marker([stop.coordinates!.lat, stop.coordinates!.lng], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="width:${isSelected ? 34 : 28}px;height:${isSelected ? 34 : 28}px;border-radius:9999px;border:2px solid white;background:${isMealStop ? '#10b981' : isSelected ? '#fbbf24' : '#2563eb'};color:${isSelected ? '#0f172a' : 'white'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 3px 8px rgba(15,23,42,.3)">${isMealStop ? '🍴' : stopIndex + 1}</div>`,
+          iconSize: [isSelected ? 34 : 28, isSelected ? 34 : 28],
+          iconAnchor: [isSelected ? 17 : 14, isSelected ? 17 : 14],
+        }),
+      }).addTo(routeLayer)
+
+      marker.bindTooltip(`Stop ${stopIndex + 1}: ${stop.placeName}`, { direction: 'top', offset: [0, -12] })
+      marker.on('click', () => setSelectedMapPinId(stop.id))
+    })
+
+    map.fitBounds(L.latLngBounds(routePoints), { padding: [28, 28], maxZoom: 15 })
+
+    if (routePoints.length > 1) {
+      const coordinates = routePoints.map(([lat, lng]) => `${lng},${lat}`).join(';')
+      fetch(
+        `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&alternatives=3&continue_straight=false&geometries=geojson`,
+        { signal: routeRequestController.signal }
+      )
+        .then((response) => {
+          if (!response.ok) throw new Error('Road route unavailable')
+          return response.json() as Promise<{
+            routes?: Array<{
+              distance: number
+              duration: number
+              geometry?: { coordinates: Array<[number, number]> }
+            }>
+          }>
+        })
+        .then((data) => {
+          const routes = data.routes || []
+          if (routes.length === 0 || routeRequestController.signal.aborted) return
+          const selectedRoute =
+            routePreference === 'shortest'
+              ? routes.reduce((shortest, route) => (route.distance < shortest.distance ? route : shortest), routes[0])
+              : routes.reduce(
+                  (lessTraffic, route) => {
+                    const routeTrafficScore = route.duration * currentTrafficMultiplier
+                    const selectedTrafficScore = lessTraffic.duration * currentTrafficMultiplier
+                    return routeTrafficScore < selectedTrafficScore ? route : lessTraffic
+                  },
+                  routes[0]
+                )
+          const geometry = selectedRoute?.geometry?.coordinates
+          if (!geometry || geometry.length < 2 || routeRequestController.signal.aborted) return
+          if (routeLineRef.current) routeLayer.removeLayer(routeLineRef.current)
+          routeLineRef.current = L.polyline(
+            geometry.map(([lng, lat]) => [lat, lng] as [number, number]),
+            {
+              color: '#2563eb',
+              weight: 5,
+              opacity: 0.9,
+            }
+          ).addTo(routeLayer)
+          addDirectionPointers(geometry.map(([lng, lat]) => [lat, lng] as [number, number]))
+        })
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === 'AbortError') return
+          console.warn('Road route unavailable; using the straight-line fallback.', error)
+        })
+    }
+
+    return () => routeRequestController.abort()
+  }, [
+    isGenerated,
+    plannedTrip,
+    activeDayStops,
+    selectedMapPinId,
+    isMapExpanded,
+    isSatelliteView,
+    routePreference,
+    currentTrafficMultiplier,
+  ])
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
@@ -1033,7 +1506,10 @@ export default function BuildTripPage() {
                       setCustomBudgetAmount(Number(e.target.value))
                       setBudgetTier('custom')
                     }}
-                    className="w-full accent-blue-600 cursor-pointer"
+                    style={{
+                     background: `linear-gradient(to right, #2563eb ${((customBudgetAmount - 1500) / (60000 - 1500)) * 100}%, #e2e8f0 ${((customBudgetAmount - 1500) / (60000 - 1500)) * 100}%)`,
+                    }}
+                    className="w-full h-2 appearance-none rounded-full bg-slate-200 accent-blue-600 cursor-pointer focus:outline-none [&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:-mt-1 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:shadow-sm [&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-blue-600"
                   />
                   <div className="flex justify-between text-[10px] text-slate-400 font-bold">
                     <span>₹1,500 (Budget Solo)</span>
@@ -1043,33 +1519,33 @@ export default function BuildTripPage() {
                 </div>
 
                 {/* Estimated Budget Allocation Preview (Requirement 7) */}
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white space-y-3">
-                  <div className="text-xs font-black uppercase tracking-widest text-amber-400">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                  <div className="text-xs font-black uppercase tracking-widest text-blue-700">
                     Suggested Estimated Allocation (~₹{resolvedBudgetAmount.toLocaleString()})
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
-                    <div className="p-2 bg-white/5 rounded-xl border border-white/10">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Stay (~40%)</div>
-                      <div className="font-bold text-white mt-1">₹{Math.round(resolvedBudgetAmount * 0.4).toLocaleString()}</div>
+                    <div className="p-2 bg-white rounded-xl border border-slate-200">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase">Stay (~40%)</div>
+                      <div className="font-bold text-slate-900 mt-1">₹{Math.round(resolvedBudgetAmount * 0.4).toLocaleString()}</div>
                     </div>
-                    <div className="p-2 bg-white/5 rounded-xl border border-white/10">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Food (~25%)</div>
-                      <div className="font-bold text-white mt-1">₹{Math.round(resolvedBudgetAmount * 0.25).toLocaleString()}</div>
+                    <div className="p-2 bg-white rounded-xl border border-slate-200">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase">Food (~25%)</div>
+                      <div className="font-bold text-slate-900 mt-1">₹{Math.round(resolvedBudgetAmount * 0.25).toLocaleString()}</div>
                     </div>
-                    <div className="p-2 bg-white/5 rounded-xl border border-white/10">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Transit (~18%)</div>
-                      <div className="font-bold text-white mt-1">₹{Math.round(resolvedBudgetAmount * 0.18).toLocaleString()}</div>
+                    <div className="p-2 bg-white rounded-xl border border-slate-200">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase">Transit (~18%)</div>
+                      <div className="font-bold text-slate-900 mt-1">₹{Math.round(resolvedBudgetAmount * 0.18).toLocaleString()}</div>
                     </div>
-                    <div className="p-2 bg-white/5 rounded-xl border border-white/10">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Tickets (~10%)</div>
-                      <div className="font-bold text-white mt-1">₹{Math.round(resolvedBudgetAmount * 0.1).toLocaleString()}</div>
+                    <div className="p-2 bg-white rounded-xl border border-slate-200">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase">Tickets (~10%)</div>
+                      <div className="font-bold text-slate-900 mt-1">₹{Math.round(resolvedBudgetAmount * 0.1).toLocaleString()}</div>
                     </div>
-                    <div className="p-2 bg-white/5 rounded-xl border border-white/10">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">Buffer (~7%)</div>
-                      <div className="font-bold text-white mt-1">₹{Math.round(resolvedBudgetAmount * 0.07).toLocaleString()}</div>
+                    <div className="p-2 bg-white rounded-xl border border-slate-200">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase">Buffer (~7%)</div>
+                      <div className="font-bold text-slate-900 mt-1">₹{Math.round(resolvedBudgetAmount * 0.07).toLocaleString()}</div>
                     </div>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-medium">
+                  <div className="text-[10px] text-slate-500 font-medium">
                     * Estimates based on verified ASI tickets and typical local transportation rates.
                   </div>
                 </div>
@@ -1568,34 +2044,57 @@ export default function BuildTripPage() {
           </div>
         )}
 
+        {/* ── Generation Error State ── */}
+        {generationError && (
+          <div className="bg-white rounded-3xl p-8 border border-rose-200 shadow-sm flex flex-col items-center gap-4 text-center">
+            <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center">
+              <AlertCircle size={28} className="text-rose-500" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-slate-900 mb-1">Couldn't Build Your Journey</h3>
+              <p className="text-sm text-slate-500 font-medium max-w-md">{generationError}</p>
+            </div>
+            <button
+              onClick={() => {
+                setGenerationError(null)
+                setCurrentStep(6)
+              }}
+              className="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <ArrowLeft size={14} />
+              <span>Go Back & Choose Sights</span>
+            </button>
+          </div>
+        )}
+
         {/* ══════════════════════════════════════════════════════════════
             MODE B: GENERATED JOURNEY ITINERARY & INTERACTIVE MAP VIEW
         ══════════════════════════════════════════════════════════════ */}
         {isGenerated && plannedTrip && (
           <div className="space-y-6">
             {/* ── Top Bar: Day Selector & Health Score Badge ── */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-xl space-y-4">
+            <div className="p-5 sm:p-6 rounded-3xl bg-white text-slate-900 border border-slate-200 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-widest text-amber-400 mb-1">
-                    <span className="flex items-center gap-1 bg-amber-400/10 text-amber-300 border border-amber-400/20 px-2.5 py-1 rounded-full">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-widest text-amber-600 mb-1">
+                    <span className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">
                       <Sparkles size={12} />
                       <span>Optimized Itinerary</span>
                     </span>
-                    <span className="flex items-center gap-1 bg-white/10 text-slate-200 px-2.5 py-1 rounded-full">
-                      <MapPin size={12} className="text-[#E5293E]" />
+                    <span className="flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full">
+                      <MapPin size={12} className="text-rose-600" />
                       <span>{destinationData?.name}, {destinationData?.state}</span>
                     </span>
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-black font-display text-white">
+                  <h2 className="text-2xl sm:text-3xl font-black font-display text-slate-900">
                     {plannedTrip.tripTitle}
                   </h2>
-                  <div className="text-xs text-slate-300 font-medium mt-1 flex flex-wrap items-center gap-3">
-                    <span>Base: <strong className="text-white">{plannedTrip.selectedHotel?.name || 'Hotel Base'}</strong></span>
+                  <div className="text-xs text-slate-500 font-medium mt-1 flex flex-wrap items-center gap-3">
+                    <span>Base: <strong className="text-slate-800">{plannedTrip.selectedHotel?.name || 'Hotel Base'}</strong></span>
                     <span>·</span>
-                    <span>Mode: <strong className="text-amber-300 capitalize">{transportMode.replace('_', ' ')}</strong></span>
+                    <span>Mode: <strong className="text-amber-700 capitalize">{transportMode.replace('_', ' ')}</strong></span>
                     <span>·</span>
-                    <span>Estimated Spend: <strong className="text-emerald-400">₹{plannedTrip.budgetBreakdown.totalEstimated.toLocaleString()}</strong></span>
+                    <span>Estimated Spend: <strong className="text-emerald-600">₹{plannedTrip.budgetBreakdown.totalEstimated.toLocaleString()}</strong></span>
                   </div>
                 </div>
 
@@ -1606,36 +2105,36 @@ export default function BuildTripPage() {
                       setIsGenerated(false)
                       setCurrentStep(1)
                     }}
-                    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-bold text-slate-200 transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 transition-all flex items-center gap-1.5 cursor-pointer"
                     title="Change Destination"
                   >
-                    <MapPin size={13} className="text-rose-400" />
+                    <MapPin size={13} className="text-rose-600" />
                     <span>Change City</span>
                   </button>
 
                   <button
                     onClick={() => setShowExplanationModal(true)}
-                    className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all text-left cursor-pointer flex items-center gap-3 shrink-0"
+                    className="p-2.5 sm:p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all text-left cursor-pointer flex items-center gap-3 shrink-0"
                   >
                     <div>
-                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-300">
+                      <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">
                         Plan Health
                       </div>
-                      <div className="text-base sm:text-lg font-black text-emerald-400">
+                      <div className="text-base sm:text-lg font-black text-emerald-600">
                         {plannedTrip.health.score}/100 · {plannedTrip.health.label}
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-slate-400" />
+                    <ChevronRight size={18} className="text-slate-500" />
                   </button>
                 </div>
               </div>
 
               {/* Quick Config Bar: Instant Duration & Transport Tuning without Wizard */}
-              <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                 {/* Duration Switcher */}
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Trip Duration:</span>
-                  <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Trip Duration:</span>
+                  <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
                     {[1, 2, 3, 4, 5].map((d) => (
                       <button
                         key={d}
@@ -1643,7 +2142,7 @@ export default function BuildTripPage() {
                         className={`px-3 py-1 rounded-lg font-black transition-all cursor-pointer ${
                           daysCount === d
                             ? 'bg-blue-600 text-white shadow-xs'
-                            : 'text-slate-400 hover:text-white'
+                            : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
                         {d} {d === 1 ? 'Day' : 'Days'}
@@ -1654,8 +2153,8 @@ export default function BuildTripPage() {
 
                 {/* Transport Switcher */}
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Transit:</span>
-                  <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Transit:</span>
+                  <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
                     {[
                       { id: 'mixed' as TransportMode, label: 'Mixed', icon: '🛺' },
                       { id: 'auto_rickshaw' as TransportMode, label: 'Auto', icon: '🛺' },
@@ -1668,7 +2167,7 @@ export default function BuildTripPage() {
                         className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer ${
                           transportMode === t.id
                             ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                            : 'text-slate-400 hover:text-white'
+                            : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
                         <span>{t.icon}</span>
@@ -1741,15 +2240,43 @@ export default function BuildTripPage() {
                     </p>
                   </div>
 
-                  {/* Day Route Optimizer Button */}
-                  <button
-                    onClick={handleOptimizeCurrentDay}
-                    className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <Zap size={14} />
-                    <span>⚡ Optimize Day Route</span>
-                  </button>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <span className="text-[11px] font-bold text-slate-500">Live time: {formatLiveClock}</span>
+                    <button
+                      onClick={startCurrentDay}
+                      className={`px-4 py-2 rounded-xl text-xs font-black text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                        startedDays[activeDayIdx] ? 'bg-emerald-600' : 'bg-rose-600 hover:bg-rose-700'
+                      }`}
+                    >
+                      <Clock size={14} />
+                      <span>{startedDays[activeDayIdx] ? 'Day In Progress' : 'Start Day'}</span>
+                    </button>
+                    <button
+                      onClick={handleOptimizeCurrentDay}
+                      className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Zap size={14} />
+                      <span>⚡ Optimize Day Route</span>
+                    </button>
+                  </div>
                 </div>
+
+                {startedDays[activeDayIdx] && (
+                  <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-900">
+                    <div className="flex items-center gap-2 font-black">
+                      <Clock size={14} />
+                      <span>Live route timing is anchored to your {formatLiveClock} start.</span>
+                    </div>
+                    <p className="mt-1 font-medium">
+                      Travel legs include route distance and a time-of-day traffic buffer. Actual arrival can vary with live road conditions.
+                    </p>
+                    {nearbyLowerCrowdSuggestion && (
+                      <p className="mt-2 font-bold text-emerald-800">
+                        Suggestion: {nearbyLowerCrowdSuggestion.place.name} is about {nearbyLowerCrowdSuggestion.distanceKm.toFixed(1)} km away and is marked for a quieter visit at {nearbyLowerCrowdSuggestion.place.bestTimeToVisit?.split('(')[0].trim() || 'a quieter time'}.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Day Metrics Quick Bar (Requirement 30) */}
                 <div className="grid grid-cols-5 gap-2 p-3 bg-white rounded-2xl border border-slate-200 text-center text-xs shadow-xs">
@@ -1787,8 +2314,24 @@ export default function BuildTripPage() {
 
                 {/* Stops Timeline */}
                 <div className="relative border-l-2 border-slate-200 ml-4 pl-6 space-y-4">
-                  {plannedTrip.days[activeDayIdx]?.stops.map((stop, idx) => {
+                  {plannedTrip.days[activeDayIdx]?.stops
+                    .map((stop, originalIndex) => ({ stop, originalIndex }))
+                    .sort((a, b) => {
+                      const aVisited = Boolean(visitedAt[a.stop.id])
+                      const bVisited = Boolean(visitedAt[b.stop.id])
+                      if (aVisited !== bVisited) return aVisited ? -1 : 1
+                      return a.originalIndex - b.originalIndex
+                    })
+                    .map(({ stop, originalIndex: idx }) => {
                     const isSelectedOnMap = selectedMapPinId === stop.id
+                    const isCompleted = Boolean(visitedAt[stop.id])
+                    const isCurrent =
+                      startedDays[activeDayIdx] && stop.id === currentLiveStopId
+                    const liveStatusClass = isCompleted
+                      ? 'border-emerald-500 bg-emerald-50/60'
+                      : isCurrent
+                        ? 'border-rose-500 bg-rose-50/60 ring-2 ring-rose-400/20'
+                        : ''
 
                     // ── SPECIAL RENDERING: MIDDAY REGIONAL LUNCH & CULINARY BREAK ──
                     if (stop.isMealStop) {
@@ -1797,11 +2340,11 @@ export default function BuildTripPage() {
                         <div
                           key={stop.id}
                           onClick={() => setSelectedMapPinId(stop.id)}
-                          className={`relative group rounded-3xl p-5 border-2 transition-all cursor-pointer bg-gradient-to-br from-amber-50/70 via-emerald-50/40 to-white ${
+                          className={`relative group rounded-3xl p-5 border-2 transition-all cursor-pointer bg-gradient-to-br from-amber-50/70 via-emerald-50/40 to-white ${liveStatusClass || (
                             isSelectedOnMap
                               ? 'border-emerald-500 shadow-lg ring-2 ring-emerald-400/20'
                               : 'border-emerald-200/90 shadow-sm hover:border-emerald-300'
-                          }`}
+                          )}`}
                         >
                           {/* Timeline Dot */}
                           <div className="absolute -left-[31px] top-6 w-4 h-4 rounded-full border-4 border-white bg-emerald-500 shadow-sm ring-2 ring-emerald-500/30" />
@@ -1862,7 +2405,7 @@ export default function BuildTripPage() {
                                         </div>
                                       </div>
 
-                                      {spot.mustTryDishes && spot.mustTryDishes.length > 0 && (
+                                      {Array.isArray(spot.mustTryDishes) && spot.mustTryDishes.length > 0 && (
                                         <div className="flex flex-wrap gap-1">
                                           {spot.mustTryDishes.slice(0, 2).map((dish, dIdx) => (
                                             <span
@@ -1876,7 +2419,9 @@ export default function BuildTripPage() {
                                       )}
 
                                       <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px]">
-                                        <span className="text-slate-500 font-medium truncate max-w-[140px]">{spot.address.split(',')[0]}</span>
+                                        <span className="text-slate-500 font-medium truncate max-w-[140px]">
+                                          {spot.address?.split(',')[0] || destinationData?.name || 'Nearby dining'}
+                                        </span>
                                         <span className="font-bold text-emerald-700 shrink-0">
                                           {spot.isVeg ? '🟢 Pure Veg' : 'Multi-Cuisine'}
                                         </span>
@@ -1892,11 +2437,15 @@ export default function BuildTripPage() {
                     }
 
                     // ── STANDARD ATTRACTION STOP RENDERING ──
+                    const stopPlace = destinationData?.places.find((place) => place.id === stop.placeId)
+                    const recommendedVisitTime = stopPlace?.bestTimeToVisit?.split('(')[0].trim()
+
                     return (
                       <div
                         key={stop.id}
                         onClick={() => setSelectedMapPinId(stop.id)}
                         className={`relative group rounded-2xl p-4 border transition-all cursor-pointer ${
+                          liveStatusClass ||
                           isSelectedOnMap
                             ? 'bg-blue-50/50 border-blue-400 shadow-md ring-2 ring-blue-400/20'
                             : 'bg-white border-slate-200/90 shadow-xs hover:border-slate-300'
@@ -1907,19 +2456,61 @@ export default function BuildTripPage() {
 
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[11px] font-black px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                                {stop.timeSlot}
-                              </span>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase">
-                                {stop.durationMin} mins duration
-                              </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {(isCompleted || isCurrent) && (
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                                  isCompleted ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                                }`}>
+                                  {isCompleted ? 'Visited' : 'Next Visit'}
+                                </span>
+                              )}
+                              <label
+                                className="inline-flex items-center gap-1.5 text-[11px] font-black px-2 py-1 rounded bg-blue-100 text-blue-800 cursor-pointer"
+                                onClick={(e) => e.stopPropagation()}
+                                title="Choose your preferred visit start time. Later visits will be adjusted automatically."
+                              >
+                                <Clock size={12} />
+                                <span className="text-[10px] uppercase tracking-wide">Your time</span>
+                                <span>{formatScheduleTime(parseScheduleTime(stop.startTime || stop.timeSlot))}</span>
+                                <input
+                                  type="time"
+                                  value={getTimeInputValue(stop.startTime || stop.timeSlot)}
+                                  onChange={(e) => handleChangeStopTime(idx, e.target.value)}
+                                  className="sr-only"
+                                  aria-label={`Preferred start time for ${stop.placeName}`}
+                                />
+                                <span>– {formatScheduleTime(parseScheduleTime(stop.endTime))}</span>
+                              </label>
+                              <label
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase"
+                                onClick={(e) => e.stopPropagation()}
+                                title="Set how long you want to spend at this location"
+                              >
+                                <input
+                                  type="number"
+                                  min="15"
+                                  max="720"
+                                  step="15"
+                                  value={stop.durationMin}
+                                  onChange={(e) => handleChangeStopDuration(idx, e.target.value)}
+                                  className="w-14 rounded border border-slate-200 bg-white px-1 py-0.5 text-center font-black text-slate-700 outline-blue-500"
+                                  aria-label={`Visit duration in minutes for ${stop.placeName}`}
+                                />
+                                <span>mins</span>
+                              </label>
                               {stop.priority === 'must_visit' && (
                                 <span className="text-[10px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
                                   ❤️ Must Visit
                                 </span>
                               )}
                             </div>
+
+                            {recommendedVisitTime && (
+                              <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-1 rounded-lg inline-flex items-center gap-1 font-semibold">
+                                <Sparkles size={12} />
+                                <span>Recommended: {recommendedVisitTime}</span>
+                              </div>
+                            )}
 
                             <h4 className="text-base font-black text-slate-900">
                               {stop.placeName}
@@ -2009,7 +2600,7 @@ export default function BuildTripPage() {
                         </div>
                       </div>
                     )
-                  })}
+                    })}
                 </div>
 
                 {/* + Add Stop to Day Button */}
@@ -2024,23 +2615,23 @@ export default function BuildTripPage() {
                 {/* ══════════════════════════════════════════════════════════════
                     DONE ROAMING FOR THE DAY? EVENING DINNER & TONIGHT'S REST
                 ══════════════════════════════════════════════════════════════ */}
-                <div className="mt-8 p-5 sm:p-6 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-xl space-y-6">
+                <div className="mt-8 p-5 sm:p-6 rounded-3xl bg-white text-slate-900 border border-slate-200 shadow-sm space-y-6">
                   {/* Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                      <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
                         <Moon size={20} />
                       </div>
                       <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-amber-600">
                           Evening Post-Roaming Plan
                         </div>
-                        <h4 className="text-lg font-black font-display text-white">
+                        <h4 className="text-lg font-black font-display text-slate-900">
                           Done Roaming for {plannedTrip.days[activeDayIdx]?.dateLabel}? Dinner & Tonight's Rest
                         </h4>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-slate-400 bg-white/10 px-3 py-1.5 rounded-full self-start sm:self-auto">
+                    <span className="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full self-start sm:self-auto">
                       🌙 Day Wraps ~{plannedTrip.days[activeDayIdx]?.endTime}
                     </span>
                   </div>
@@ -2048,52 +2639,52 @@ export default function BuildTripPage() {
                   {/* PART 1: Nearby Dinner Restaurants */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-black text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
-                        <UtensilsCrossed size={14} className="text-amber-400" />
+                      <div className="text-xs font-black text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                        <UtensilsCrossed size={14} className="text-amber-600" />
                         <span>Recommended Dinner Spots in {destinationData?.name}</span>
                       </div>
-                      <span className="text-[11px] text-slate-400 font-medium">Open for evening dining</span>
+                      <span className="text-[11px] text-slate-500 font-medium">Open for evening dining</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {(destinationData?.foodSpots || []).map((spot) => (
                         <div
                           key={spot.id}
-                          className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:border-amber-400/50 transition-all space-y-2 group"
+                          className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-amber-300 transition-all space-y-2 group"
                         >
                           <div className="flex gap-3">
                             <img
                               src={spot.image}
                               alt={spot.name}
-                              className="w-16 h-16 rounded-xl object-cover border border-slate-700 shrink-0 group-hover:scale-105 transition-transform"
+                              className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:scale-105 transition-transform"
                               onError={(e) => {
                                 ;(e.currentTarget as HTMLImageElement).src = '/images/places/laxman-jhula.jpg'
                               }}
                             />
                             <div className="min-w-0 flex-1 space-y-0.5">
                               <div className="flex items-center justify-between">
-                                <h5 className="text-xs font-black text-white truncate">{spot.name}</h5>
-                                <span className="text-[10px] font-black text-amber-400 shrink-0">★ {spot.rating}</span>
+                                <h5 className="text-xs font-black text-slate-900 truncate">{spot.name}</h5>
+                                <span className="text-[10px] font-black text-amber-600 shrink-0">★ {spot.rating}</span>
                               </div>
-                              <p className="text-[11px] text-slate-300 truncate">{spot.cuisineType}</p>
-                              <div className="text-[11px] font-black text-emerald-400">
-                                ₹{spot.priceForTwo} for two · <span className="text-slate-400 font-normal">{spot.timings}</span>
+                              <p className="text-[11px] text-slate-500 truncate">{spot.cuisineType}</p>
+                              <div className="text-[11px] font-black text-emerald-600">
+                                ₹{spot.priceForTwo} for two · <span className="text-slate-500 font-normal">{spot.timings}</span>
                               </div>
                             </div>
                           </div>
 
                           {spot.specialty && (
-                            <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed italic">
+                            <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed italic">
                               "{spot.specialty}"
                             </p>
                           )}
 
-                          {spot.mustTryDishes && spot.mustTryDishes.length > 0 && (
+                          {Array.isArray(spot.mustTryDishes) && spot.mustTryDishes.length > 0 && (
                             <div className="flex flex-wrap gap-1 pt-1">
-                              {spot.mustTryDishes.slice(0, 3).map((dish, dIdx) => (
+                              {(Array.isArray(spot.mustTryDishes) ? spot.mustTryDishes : []).slice(0, 3).map((dish, dIdx) => (
                                 <span
                                   key={dIdx}
-                                  className="text-[9px] font-bold bg-amber-400/10 text-amber-300 border border-amber-400/20 px-2 py-0.5 rounded-full"
+                                  className="text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full"
                                 >
                                   {dish}
                                 </span>
@@ -2101,11 +2692,11 @@ export default function BuildTripPage() {
                             </div>
                           )}
 
-                          <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px]">
-                            <span className="text-slate-400 font-medium truncate max-w-[180px]">
+                          <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
+                            <span className="text-slate-500 font-medium truncate max-w-[180px]">
                               📍 {spot.address}
                             </span>
-                            <span className="font-bold text-emerald-400 shrink-0">
+                            <span className="font-bold text-emerald-600 shrink-0">
                               {spot.isVeg ? '🟢 Pure Veg' : 'Multi-Cuisine'}
                             </span>
                           </div>
@@ -2115,13 +2706,13 @@ export default function BuildTripPage() {
                   </div>
 
                   {/* PART 2: Where to Stay Tonight (Active Base & Alternative Stays) */}
-                  <div className="space-y-3 pt-4 border-t border-slate-800">
+                  <div className="space-y-3 pt-4 border-t border-slate-200">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-black text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
-                        <Building2 size={14} className="text-blue-400" />
+                      <div className="text-xs font-black text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                        <Building2 size={14} className="text-blue-600" />
                         <span>Where to Stay Tonight (Hotel Base & Stays in {destinationData?.name})</span>
                       </div>
-                      <span className="text-[11px] text-emerald-400 font-bold">● Active Trip Base</span>
+                      <span className="text-[11px] text-emerald-600 font-bold">● Active Trip Base</span>
                     </div>
 
                     {/* Stays Grid */}
@@ -2134,11 +2725,11 @@ export default function BuildTripPage() {
                             onClick={() => handleQuickChangeHotel(stay.id)}
                             className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer space-y-2 ${
                               isBase
-                                ? 'bg-blue-950/60 border-blue-500 ring-2 ring-blue-500/20 shadow-md'
-                                : 'bg-slate-800/60 border-slate-700/80 hover:border-slate-600'
+                                ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20 shadow-md'
+                                : 'bg-slate-50 border-slate-200 hover:border-blue-300'
                             }`}
                           >
-                            <div className="h-28 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 relative">
+                            <div className="h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative">
                               <img
                                 src={stay.image}
                                 alt={stay.name}
@@ -2155,34 +2746,36 @@ export default function BuildTripPage() {
                             </div>
 
                             <div className="flex items-center justify-between">
-                              <h5 className="text-xs font-black text-white truncate">{stay.name}</h5>
-                              <span className="text-[10px] font-black text-amber-400 shrink-0">★ {stay.rating}</span>
+                              <h5 className="text-xs font-black text-slate-900 truncate">{stay.name}</h5>
+                              <span className="text-[10px] font-black text-amber-600 shrink-0">★ {stay.rating}</span>
                             </div>
 
-                            <div className="text-xs font-black text-emerald-400">
-                              ₹{stay.pricePerNight.toLocaleString()}{' '}
-                              <span className="text-[10px] text-slate-400 font-normal">/ night</span>
+                            <div className="text-xs font-black text-emerald-600">
+                              ₹{Number(stay.pricePerNight || 0).toLocaleString()}{' '}
+                              <span className="text-[10px] text-slate-500 font-normal">/ night</span>
                             </div>
 
                             <div className="flex flex-wrap gap-1">
                               {stay.amenities?.slice(0, 2).map((a, aIdx) => (
                                 <span
                                   key={aIdx}
-                                  className="text-[9px] font-medium bg-white/10 text-slate-300 px-1.5 py-0.5 rounded"
+                                  className="text-[9px] font-medium bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded"
                                 >
                                   {a}
                                 </span>
                               ))}
                             </div>
 
-                            <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between">
-                              <span className="text-[10px] text-slate-400 truncate">{stay.address.split(',')[0]}</span>
+                            <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                              <span className="text-[10px] text-slate-500 truncate">
+                                {stay.address?.split(',')[0] || destinationData?.name || 'Central area'}
+                              </span>
                               <button
                                 type="button"
                                 className={`text-[10px] font-black px-2 py-0.5 rounded-md transition-all ${
                                   isBase
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-white/10 hover:bg-white/20 text-slate-200'
+                                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                                 }`}
                               >
                                 {isBase ? '✓ Selected' : 'Set as Base'}
@@ -2198,89 +2791,115 @@ export default function BuildTripPage() {
 
               {/* Right Column: Synchronized Interactive Map & Route Flow */}
               <div className={`lg:col-span-5 space-y-6 ${mobileTab === 'itinerary' ? 'hidden lg:block' : 'block'}`}>
+                {isMapExpanded && (
+                  <div
+                    className="fixed inset-0 z-[90] bg-slate-950/30 backdrop-blur-sm"
+                    onClick={() => setIsMapExpanded(false)}
+                    aria-hidden="true"
+                  />
+                )}
                 {/* Visual Map Canvas */}
-                <div className="bg-slate-900 text-white rounded-3xl p-5 shadow-xl border border-slate-800 space-y-4 relative overflow-hidden min-h-[460px]">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <div
+                  style={
+                    isMapExpanded
+                      ? {
+                          position: 'fixed',
+                          top: '50%',
+                          left: '50%',
+                          width: 'min(92vw, calc(100vh - 6rem), 720px)',
+                          height: 'min(92vw, calc(100vh - 6rem), 720px)',
+                          transform: 'translate(-50%, -50%)',
+                        }
+                      : undefined
+                  }
+                  className={`bg-white text-slate-900 rounded-3xl p-5 shadow-sm border border-slate-200 space-y-4 relative ${
+                    isMapExpanded
+                      ? 'z-[100] overflow-y-auto shadow-2xl ring-4 ring-white/80'
+                      : 'overflow-hidden min-h-[460px]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div className="text-xs font-black uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
                       <MapPin size={14} />
                       <span>{plannedTrip.days[activeDayIdx]?.dateLabel} Route Map</span>
                     </div>
-                    <span className="text-[11px] text-slate-400 font-semibold">
-                      {coordsList.length} plotted stops
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-500 font-semibold">
+                        {coordsList.length} plotted stops
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsMapExpanded((expanded) => !expanded)}
+                        className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black text-blue-700 transition-colors hover:bg-blue-50"
+                      >
+                        {isMapExpanded ? 'Close Map' : 'Expand Map'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsSatelliteView((satellite) => !satellite)}
+                        className={`rounded-lg border px-2 py-1 text-[10px] font-black transition-colors ${
+                          isSatelliteView
+                            ? 'border-blue-600 bg-blue-600 text-white'
+                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        {isSatelliteView ? 'Road View' : 'Satellite'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRoutePreference('shortest')}
+                        className={`rounded-lg border px-2 py-1 text-[10px] font-black transition-colors ${
+                          routePreference === 'shortest'
+                            ? 'border-blue-600 bg-blue-600 text-white'
+                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        Shortest
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRoutePreference('less_traffic')}
+                        className={`rounded-lg border px-2 py-1 text-[10px] font-black transition-colors ${
+                          routePreference === 'less_traffic'
+                            ? 'border-blue-600 bg-blue-600 text-white'
+                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                        }`}
+                      >
+                        Less Traffic
+                      </button>
+                      <span className="hidden xl:inline text-[10px] font-bold text-slate-400">
+                        {currentTrafficLabel} · ×{currentTrafficMultiplier.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* SVG Canvas with Pins and Route Line */}
-                  <div className="relative w-full h-80 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden">
-                    {/* SVG Route Connector Polyline */}
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                      {activeDayStops.map((stop, sIdx) => {
-                        if (sIdx === 0) return null
-                        const prev = activeDayStops[sIdx - 1]
-                        const p1 = getPinPct(prev.coordinates)
-                        const p2 = getPinPct(stop.coordinates)
-                        return (
-                          <line
-                            key={`line-${sIdx}`}
-                            x1={`${p1.x}%`}
-                            y1={`${p1.y}%`}
-                            x2={`${p2.x}%`}
-                            y2={`${p2.y}%`}
-                            stroke="#38bdf8"
-                            strokeWidth="2.5"
-                            strokeDasharray="4 4"
-                            opacity="0.8"
-                          />
-                        )
-                      })}
-                    </svg>
-
-                    {/* Plotted Stops Pins */}
-                    {activeDayStops.map((stop, sIdx) => {
-                      const pos = getPinPct(stop.coordinates)
-                      const isSel = selectedMapPinId === stop.id
-                      return (
-                        <div
-                          key={stop.id}
-                          style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                          onClick={() => setSelectedMapPinId(stop.id)}
-                          className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer group"
-                        >
-                          <div
-                            className={`w-7 h-7 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-[10px] font-black transition-all ${
-                              stop.isMealStop
-                                ? 'bg-emerald-500 text-white'
-                                : isSel
-                                ? 'bg-amber-400 text-slate-950 scale-125 ring-4 ring-amber-400/30'
-                                : 'bg-blue-600 text-white'
-                            }`}
-                          >
-                            {stop.isMealStop ? '🍴' : sIdx + 1}
-                          </div>
-
-                          {/* Hover Tooltip */}
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block whitespace-nowrap z-30 pointer-events-none">
-                            <div className="bg-slate-950 text-white text-[10px] font-extrabold px-2 py-1 rounded-md shadow-lg border border-white/20">
-                              {stop.placeName}
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
+                  {/* OpenStreetMap canvas with route and numbered stop markers */}
+                  <div className={`relative w-full rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden ${
+                    isMapExpanded ? 'aspect-square h-auto' : 'h-80'
+                  }`}>
+                    <div ref={mapContainerRef} className="absolute inset-0 z-0" />
+                    {activeDayStops.filter((stop) => stop.coordinates).length > 1 && (
+                      <div className="absolute bottom-3 left-3 z-[400] rounded-lg border border-white/80 bg-white/95 px-2.5 py-1.5 text-[10px] font-black text-blue-700 shadow-md">
+                        Direction: start at {activeDayStops
+                          .filter((stop) => stop.coordinates)
+                          .map((stop, index) => `${index + 1}. ${stop.placeName}`)
+                          .join(' → ')}
+                      </div>
+                    )}
                   </div>
 
                   {/* Selected Stop Details Popover inside Map */}
                   {selectedMapPinId && (
-                    <div className="p-3 bg-white/10 rounded-2xl border border-white/10 text-xs flex items-center justify-between">
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs flex items-center justify-between">
                       <div>
-                        <div className="text-[10px] uppercase font-bold text-amber-400">Selected Stop</div>
-                        <div className="font-bold text-white">
+                        <div className="text-[10px] uppercase font-bold text-blue-700">Selected Stop</div>
+                        <div className="font-bold text-slate-900">
                           {activeDayStops.find((s) => s.id === selectedMapPinId)?.placeName}
                         </div>
                       </div>
                       <button
                         onClick={() => setSelectedMapPinId(null)}
-                        className="text-[11px] text-slate-400 hover:text-white"
+                        className="text-[11px] text-slate-500 hover:text-slate-900"
                       >
                         Clear
                       </button>
@@ -2288,15 +2907,15 @@ export default function BuildTripPage() {
                   )}
 
                   {/* Tabbed Explorer: Route Flow / Nearby Dining / Where to Stay */}
-                  <div className="space-y-3 pt-2 border-t border-slate-800">
-                    <div className="flex rounded-xl bg-slate-950 p-1 border border-slate-800 text-xs font-bold">
+                  <div className="space-y-3 pt-2 border-t border-slate-200">
+                    <div className="flex rounded-xl bg-slate-50 p-1 border border-slate-200 text-xs font-bold">
                       <button
                         type="button"
                         onClick={() => setRightPanelTab('flow')}
                         className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer text-center ${
                           rightPanelTab === 'flow'
                             ? 'bg-blue-600 text-white font-black shadow-xs'
-                            : 'text-slate-400 hover:text-white'
+                            : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
                         Route Flow
@@ -2306,8 +2925,8 @@ export default function BuildTripPage() {
                         onClick={() => setRightPanelTab('dining')}
                         className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
                           rightPanelTab === 'dining'
-                            ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                            : 'text-slate-400 hover:text-white'
+                            ? 'bg-blue-600 text-white font-black shadow-xs'
+                            : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
                         <span>🍛 Dining</span>
@@ -2318,8 +2937,8 @@ export default function BuildTripPage() {
                         onClick={() => setRightPanelTab('stays')}
                         className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
                           rightPanelTab === 'stays'
-                            ? 'bg-blue-500 text-white font-black shadow-xs'
-                            : 'text-slate-400 hover:text-white'
+                            ? 'bg-blue-600 text-white font-black shadow-xs'
+                            : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
                         <span>🏨 Stays</span>
@@ -2329,24 +2948,24 @@ export default function BuildTripPage() {
 
                     {/* Tab 1: Route Transit Flow */}
                     {rightPanelTab === 'flow' && (
-                      <div className="space-y-2 p-3 bg-white/5 rounded-2xl border border-white/10 text-xs">
-                        <div className="flex items-center gap-2 font-bold text-purple-300">
+                      <div className="space-y-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+                        <div className="flex items-center gap-2 font-bold text-purple-700">
                           <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
                           <span>Start Base: {plannedTrip.selectedHotel?.name || 'Hotel Base'}</span>
                         </div>
 
                         {activeDayStops.map((stop) => (
-                          <div key={stop.id} className="flex items-center gap-2 text-white pl-4 text-[11px]">
-                            <span className="text-slate-500">
+                          <div key={stop.id} className="flex items-center gap-2 text-slate-700 pl-4 text-[11px]">
+                            <span className="text-slate-400">
                               ↓ {stop.travelFromPrevMin > 0 ? `${stop.travelFromPrevMin}m` : 'start'}
                             </span>
-                            <span className={`font-bold truncate ${stop.isMealStop ? 'text-emerald-400' : 'text-blue-300'}`}>
+                            <span className={`font-bold truncate ${stop.isMealStop ? 'text-emerald-600' : 'text-blue-700'}`}>
                               {stop.isMealStop ? '🍴 Lunch: Regional Dining' : stop.placeName}
                             </span>
                           </div>
                         ))}
 
-                        <div className="flex items-center gap-2 font-bold text-amber-300 pl-4 pt-1 text-[11px]">
+                        <div className="flex items-center gap-2 font-bold text-amber-700 pl-4 pt-1 text-[11px]">
                           <span>↓ ~15m</span>
                           <span>Evening: Dinner & Return to Base</span>
                         </div>
@@ -2359,7 +2978,7 @@ export default function BuildTripPage() {
                         {(destinationData?.foodSpots || []).map((spot) => (
                           <div
                             key={spot.id}
-                            className="p-2.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5 hover:border-amber-400/40 transition-all"
+                            className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-blue-300 transition-all"
                           >
                             <div className="flex items-center gap-2.5">
                               <img
@@ -2372,15 +2991,15 @@ export default function BuildTripPage() {
                               />
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between">
-                                  <span className="font-black text-white text-xs truncate">{spot.name}</span>
+                                  <span className="font-black text-slate-900 text-xs truncate">{spot.name}</span>
                                   <span className="text-[10px] font-bold text-amber-400 shrink-0">★ {spot.rating}</span>
                                 </div>
-                                <div className="text-[10px] text-slate-400 truncate">{spot.cuisineType}</div>
+                                <div className="text-[10px] text-slate-500 truncate">{spot.cuisineType}</div>
                               </div>
                             </div>
-                            <div className="flex items-center justify-between text-[10px] pt-1 border-t border-white/5">
+                            <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-200">
                               <span className="text-emerald-400 font-bold">₹{spot.priceForTwo} for two</span>
-                              <span className="text-slate-400">{spot.isVeg ? '🟢 Pure Veg' : 'Multi-Cuisine'}</span>
+                              <span className="text-slate-500">{spot.isVeg ? '🟢 Pure Veg' : 'Multi-Cuisine'}</span>
                             </div>
                           </div>
                         ))}
@@ -2398,20 +3017,20 @@ export default function BuildTripPage() {
                               onClick={() => handleQuickChangeHotel(stay.id)}
                               className={`p-2.5 rounded-xl border transition-all cursor-pointer space-y-1.5 ${
                                 isBase
-                                  ? 'bg-blue-600/20 border-blue-500'
-                                  : 'bg-white/5 border-white/10 hover:border-white/20'
+                                  ? 'bg-blue-50 border-blue-500'
+                                  : 'bg-slate-50 border-slate-200 hover:border-blue-300'
                               }`}
                             >
                               <div className="flex items-center justify-between">
-                                <span className="font-black text-white text-xs truncate">{stay.name}</span>
+                                <span className="font-black text-slate-900 text-xs truncate">{stay.name}</span>
                                 <span className="text-[10px] font-bold text-amber-400">★ {stay.rating}</span>
                               </div>
                               <div className="flex items-center justify-between text-[10px]">
-                                <span className="text-emerald-400 font-bold">₹{stay.pricePerNight.toLocaleString()} / night</span>
+                                <span className="text-emerald-400 font-bold">                                ₹{Number(stay.pricePerNight || 0).toLocaleString()} / night</span>
                                 <button
                                   type="button"
                                   className={`text-[9px] font-black px-2 py-0.5 rounded ${
-                                    isBase ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-300'
+                                    isBase ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
                                   }`}
                                 >
                                   {isBase ? 'Active Base' : 'Set as Base'}

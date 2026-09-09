@@ -226,12 +226,43 @@ const genericExperiences: DestinationExperience[] = [
   { id: 'adventure', title: 'Adventure & Outdoor Treks', sub: 'Excursions, hiking & nature activities', tag: 'Adventure', icon: Compass },
 ]
 
+const goldenSpotExperience: DestinationExperience = {
+  id: 'golden-spot',
+  title: 'Golden Spot',
+  sub: 'Select a destination to discover its signature highlight',
+  tag: 'Signature',
+  icon: Landmark,
+}
+
+function getDurationDays(durationValue: string) {
+  if (durationValue.startsWith('Weekend')) return 2
+  if (durationValue.startsWith('1 Week')) return 7
+  if (durationValue.startsWith('10+')) return 10
+
+  const customDays = Number.parseInt(durationValue, 10)
+  return Number.isNaN(customDays) ? 0 : customDays
+}
+
+function getGoldenSpotForDuration(city: DestinationItem, durationValue: string) {
+  const experiences = city.experiences?.length ? city.experiences : genericExperiences
+  const days = getDurationDays(durationValue)
+  const experienceIndex = days <= 2 ? 0 : days <= 5 ? 1 : days <= 7 ? 2 : 3
+
+  return experiences[Math.min(experienceIndex, experiences.length - 1)]
+}
+
 const durationOptions = [
   { value: 'Weekend (2 Days)', label: 'Weekend (2 Days)', badge: 'Quick Getaway', desc: 'Highlights & essential spots' },
-  { value: '3–5 Days', label: '3–5 Days', badge: 'Recommended', desc: 'Balanced circuit & rich experiences' },
   { value: '1 Week (7 Days)', label: '1 Week (7 Days)', badge: 'Deep Dive', desc: 'Comprehensive heritage & hidden gems' },
   { value: '10+ Days', label: '10+ Days', badge: 'Grand Circuit', desc: 'All-inclusive multi-region expedition' },
 ]
+
+const defaultDuration = {
+  value: '',
+  label: 'Select Duration',
+  badge: 'Choose pace',
+  desc: 'Pick your trip length',
+}
 
 const trendingChips = [
   { label: 'Jaipur Forts', search: 'Jaipur', cityObjIndex: 0 },
@@ -247,13 +278,14 @@ export default function HeroSection() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('destinations')
   const [selectedCity, setSelectedCity] = useState<DestinationItem>(curatedDestinations[0])
-  const [searchQuery, setSearchQuery] = useState('Jaipur, Rajasthan')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showDestDropdown, setShowDestDropdown] = useState(false)
   const [showDurationDropdown, setShowDurationDropdown] = useState(false)
   const [showExperienceDropdown, setShowExperienceDropdown] = useState(false)
   
-  const [selectedDuration, setSelectedDuration] = useState(durationOptions[1])
-  const [selectedExperience, setSelectedExperience] = useState<DestinationExperience>(curatedDestinations[0].experiences[0])
+  const [selectedDuration, setSelectedDuration] = useState(defaultDuration)
+  const [customDurationDays, setCustomDurationDays] = useState('')
+  const [selectedExperience, setSelectedExperience] = useState<DestinationExperience>(goldenSpotExperience)
 
   const searchContainerRef = useRef<HTMLDivElement>(null)
   const durationContainerRef = useRef<HTMLDivElement>(null)
@@ -264,13 +296,24 @@ export default function HeroSection() {
     ? selectedCity.experiences
     : genericExperiences
 
+  const handleDurationSelect = (duration: typeof defaultDuration) => {
+    setSelectedDuration(duration)
+    setSelectedExperience(getGoldenSpotForDuration(selectedCity, duration.value))
+    setShowDurationDropdown(false)
+    setShowExperienceDropdown(true)
+  }
+
   // Helper when selecting a city: automatically set the authentic style for that destination
   const handleSelectCity = (city: DestinationItem) => {
     setSelectedCity(city)
     setSearchQuery(`${city.city}, ${city.state}`)
     setShowDestDropdown(false)
-    if (city.experiences && city.experiences.length > 0) {
-      setSelectedExperience(city.experiences[0])
+    setShowDurationDropdown(true)
+    setShowExperienceDropdown(false)
+    if (selectedDuration.value) {
+      setSelectedExperience(getGoldenSpotForDuration(city, selectedDuration.value))
+    } else {
+      setSelectedExperience(goldenSpotExperience)
     }
   }
 
@@ -300,8 +343,6 @@ export default function HeroSection() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const ExpIcon = selectedExperience.icon || Sparkles
 
   return (
     <section className="relative pt-24 lg:pt-28 pb-32 sm:pb-40 bg-slate-900 z-20">
@@ -441,10 +482,10 @@ export default function HeroSection() {
                         )
                         if (match) {
                           setSelectedCity(match)
-                          if (match.experiences && match.experiences.length > 0) {
-                            if (!match.experiences.some(exp => exp.id === selectedExperience.id)) {
-                              setSelectedExperience(match.experiences[0])
-                            }
+                          if (selectedDuration.value) {
+                            setSelectedExperience(getGoldenSpotForDuration(match, selectedDuration.value))
+                          } else {
+                            setSelectedExperience(goldenSpotExperience)
                           }
                         }
                       }}
@@ -453,14 +494,11 @@ export default function HeroSection() {
                         setShowDurationDropdown(false)
                         setShowExperienceDropdown(false)
                       }}
-                      placeholder="Search 'Jaipur', 'Shillong', 'Varanasi'..."
-                      className="w-full bg-transparent font-black text-2xl sm:text-3xl text-slate-900 placeholder:text-slate-400 placeholder:font-bold focus:outline-none truncate cursor-pointer"
+                      placeholder="Search a destination, city, or region..."
+                      className="w-full bg-transparent font-display font-black text-2xl sm:text-3xl text-slate-900 placeholder:text-slate-400 placeholder:font-bold focus:outline-none truncate cursor-pointer"
                     />
                   </div>
 
-                  <div className="text-xs font-semibold text-slate-500 mt-1 truncate">
-                    {selectedCity.sub}
-                  </div>
                 </div>
 
                 {/* Autocomplete Dropdown */}
@@ -543,18 +581,19 @@ export default function HeroSection() {
                     <Calendar size={15} className="text-blue-600" />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-2xl sm:text-3xl text-slate-900 truncate">
-                      {selectedDuration.value.replace(' (2 Days)', '').replace(' (7 Days)', '')}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`min-w-0 flex-1 font-display font-black text-2xl sm:text-3xl truncate ${
+                        selectedDuration.value ? 'text-slate-900' : 'text-slate-400'
+                      }`}
+                    >
+                      {selectedDuration.value
+                        ? selectedDuration.value.replace(' (2 Days)', '').replace(' (7 Days)', '')
+                        : selectedDuration.label}
                     </span>
                     <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${showDurationDropdown ? 'rotate-180 text-blue-600' : ''}`} />
                   </div>
 
-                  <div className="text-xs font-semibold text-slate-500 mt-1 truncate flex items-center gap-1.5">
-                    <span className="text-blue-600 font-bold">{selectedCity.bestSeason ? `Season: ${selectedCity.bestSeason}` : 'Best: Oct–Mar'}</span>
-                    <span>·</span>
-                    <span className="truncate">{selectedDuration.desc}</span>
-                  </div>
                 </div>
 
                 {/* Custom Duration Dropdown */}
@@ -570,25 +609,20 @@ export default function HeroSection() {
                       <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
                         Trip Duration & Pace
                       </div>
-                      <div className="space-y-1 pt-1">
+                      <div className="flex flex-col space-y-1 pt-1">
                         {durationOptions.map((opt, idx) => {
-                          const isSel = selectedDuration.value === opt.value
                           return (
                             <div
                               key={idx}
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setSelectedDuration(opt)
-                                setShowDurationDropdown(false)
+                                handleDurationSelect(opt)
                               }}
-                              className={`p-3 rounded-xl cursor-pointer transition-all flex items-center justify-between ${
-                                isSel ? 'bg-blue-50 border border-blue-200' : 'hover:bg-slate-50'
-                              }`}
+                              className="p-3 rounded-xl cursor-pointer transition-all flex items-center justify-between hover:bg-slate-50"
                             >
                               <div>
                                 <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
                                   {opt.label}
-                                  {isSel && <Check size={14} className="text-blue-600 stroke-[3]" />}
                                 </div>
                                 <div className="text-xs text-slate-500 mt-0.5">{opt.desc}</div>
                               </div>
@@ -598,6 +632,59 @@ export default function HeroSection() {
                             </div>
                           )
                         })}
+                        <div className="order-first p-3 rounded-xl border border-dashed border-slate-200 mt-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <div className="font-bold text-slate-900 text-sm">Custom duration</div>
+                              <div className="text-xs text-slate-500 mt-0.5">Choose the number of days</div>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                min="1"
+                                max="365"
+                                value={customDurationDays}
+                                onChange={(e) => setCustomDurationDays(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    const days = Number(customDurationDays)
+                                    if (Number.isInteger(days) && days >= 1 && days <= 365) {
+                                      handleDurationSelect({
+                                        value: `${days} Days`,
+                                        label: `${days} Days`,
+                                        badge: 'Custom',
+                                        desc: 'Your preferred trip length',
+                                      })
+                                    }
+                                  }
+                                }}
+                                placeholder="Days"
+                                aria-label="Custom trip duration in days"
+                                className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-center text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const days = Number(customDurationDays)
+                                  if (Number.isInteger(days) && days >= 1 && days <= 365) {
+                                    handleDurationSelect({
+                                      value: `${days} Days`,
+                                      label: `${days} Days`,
+                                      badge: 'Custom',
+                                      desc: 'Your preferred trip length',
+                                    })
+                                  }
+                                }}
+                                className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-slate-700"
+                              >
+                                Apply
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -618,24 +705,18 @@ export default function HeroSection() {
                   className="w-full"
                 >
                   <div className="flex items-center justify-between text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">
-                    <span className="group-hover:text-amber-600 transition-colors flex items-center gap-1">
-                      Experience & Style
-                      <span className="text-[10px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 uppercase">
-                        {selectedExperience.tag}
-                      </span>
-                    </span>
+                    <span className="group-hover:text-amber-600 transition-colors">Experience & Style</span>
                     <Sparkles size={15} className="text-amber-500" />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0">
-                        <ExpIcon size={16} />
-                      </div>
-                      <span className="font-black text-lg sm:text-xl text-slate-900 truncate">
-                        {selectedExperience.title}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`min-w-0 flex-1 font-display font-black text-2xl sm:text-3xl truncate ${
+                        selectedExperience.id === goldenSpotExperience.id ? 'text-slate-400' : 'text-slate-900'
+                      }`}
+                    >
+                      {selectedExperience.title}
+                    </span>
                     <ChevronDown size={18} className={`text-slate-400 shrink-0 transition-transform duration-200 ${showExperienceDropdown ? 'rotate-180 text-amber-600' : ''}`} />
                   </div>
 
@@ -730,6 +811,10 @@ export default function HeroSection() {
                 type="button"
                 onClick={() => {
                   const queryLower = searchQuery.toLowerCase().trim()
+                  if (!queryLower) {
+                    setShowDestDropdown(true)
+                    return
+                  }
                   const firstPart = queryLower.split(',')[0].trim()
                   
                   // 1. Look for matching destination in curated list
@@ -740,7 +825,7 @@ export default function HeroSection() {
                          d.state.toLowerCase().includes(queryLower)
                   )
                   
-                  const targetCity = matchedDestination ? matchedDestination.city : (firstPart || selectedCity.city)
+                  const targetCity = matchedDestination ? matchedDestination.city : firstPart
                   const duration = selectedDuration.value
                   const style = selectedExperience.title
                   navigate(`/destination?city=${encodeURIComponent(targetCity)}&duration=${encodeURIComponent(duration)}&style=${encodeURIComponent(style)}`)
@@ -782,4 +867,3 @@ export default function HeroSection() {
     </section>
   )
 }
-

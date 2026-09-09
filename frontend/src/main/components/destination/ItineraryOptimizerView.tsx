@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import type { ItineraryDay, ItineraryStop, Place, FoodSpot, StayHotel } from '../../types/destination'
 import { destinationService } from '../../services/api'
+import { RouteOptimizationService } from '../../services/planner/RouteOptimizationService'
 
 interface ItineraryOptimizerViewProps {
   initialDays: ItineraryDay[]
@@ -39,6 +40,9 @@ interface ItineraryOptimizerViewProps {
   stays?: StayHotel[]
   onSelectPlace: (place: Place) => void
   onSaveTrip: (days: ItineraryDay[]) => void
+  placeToAdd?: Place | null
+  onPlaceAddHandled?: () => void
+  onPlaceAdded?: (place: Place) => void
 }
 
 // ── Smart Timing Helper aligned with Best Time to Visit (Requirement) ──
@@ -99,6 +103,105 @@ function getPlaceTimeSlot(place: Place, stopIndex: number): { timeSlot: string; 
   return { timeSlot: `${startStr} – ${endStr}`, durationMin }
 }
 
+function getTimeSlotStartMinutes(timeSlot: string): number {
+  const match = timeSlot.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+  if (!match) return Number.MAX_SAFE_INTEGER
+
+  let hour = Number(match[1]) % 12
+  if (match[3].toUpperCase() === 'PM') hour += 12
+  return hour * 60 + Number(match[2])
+}
+
+function recalculateTimeSlots(stops: ItineraryStop[]): ItineraryStop[] {
+  let currentMinute = 8 * 60 + 30
+
+  return stops.map((stop) => {
+    currentMinute += Math.max(5, stop.travelFromPrevMin)
+    const startMinute = currentMinute
+    const endMinute = startMinute + stop.durationMin
+    currentMinute = endMinute
+
+    const formatTime = (minutes: number) => {
+      const hour24 = Math.floor(minutes / 60) % 24
+      const period = hour24 >= 12 ? 'PM' : 'AM'
+      const hour12 = hour24 % 12 || 12
+      return `${hour12}:${(minutes % 60).toString().padStart(2, '0')} ${period}`
+    }
+
+    return {
+      ...stop,
+      timeSlot: `${formatTime(startMinute)} – ${formatTime(endMinute)}`,
+    }
+  })
+}
+
+function parseTimeInput(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number)
+  return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : 8 * 60 + 30
+}
+
+function getTrafficMultiplier(departureMinute: number): number {
+  const hour = Math.floor(departureMinute / 60) % 24
+  if ((hour >= 7 && hour < 10) || (hour >= 17 && hour < 21)) return 1.35
+  if (hour >= 10 && hour < 16) return 1.15
+  return 1
+}
+
+function formatTimeInput(timeSlot: string): string {
+  const startMinutes = getTimeSlotStartMinutes(timeSlot)
+  if (!Number.isFinite(startMinutes) || startMinutes === Number.MAX_SAFE_INTEGER) return '08:30'
+  return `${Math.floor(startMinutes / 60).toString().padStart(2, '0')}:${(startMinutes % 60)
+    .toString()
+    .padStart(2, '0')}`
+}
+
+function formatTimeWithPeriod(timeSlot: string): string {
+  const minutes = getTimeSlotStartMinutes(timeSlot)
+  if (!Number.isFinite(minutes) || minutes === Number.MAX_SAFE_INTEGER) return timeSlot
+  const hour24 = Math.floor(minutes / 60) % 24
+  const period = hour24 >= 12 ? 'PM' : 'AM'
+  const hour12 = hour24 % 12 || 12
+  return `${hour12}:${(minutes % 60).toString().padStart(2, '0')} ${period}`
+}
+
+function getScheduleMinutes(timeSlot: string): number {
+  return getTimeSlotStartMinutes(timeSlot)
+}
+
+function recalculateTimeSlotsFromPreference(
+  stops: ItineraryStop[],
+  preferredIndex: number,
+  preferredTime: string,
+  startMinute = 8 * 60 + 30
+): ItineraryStop[] {
+  let currentMinute = startMinute
+  let previousCoord = stops[0]?.coordinates || { lat: 26.9124, lng: 75.7873 }
+
+  return stops.map((stop, index) => {
+    const stopCoord = stop.coordinates || previousCoord
+    const distanceKm = RouteOptimizationService.calculateDistanceKm(previousCoord, stopCoord)
+    const baseTravelMinutes = RouteOptimizationService.estimateTransitMinutes(distanceKm, 'mixed')
+    const travelMinutes = Math.ceil(baseTravelMinutes * getTrafficMultiplier(currentMinute))
+    const preferredStart = index === preferredIndex ? parseTimeInput(preferredTime) : undefined
+    const startMinute = preferredStart ?? currentMinute + travelMinutes
+    const endMinute = startMinute + stop.durationMin
+    currentMinute = endMinute
+    previousCoord = stopCoord
+
+    const formatTime = (minutes: number) => {
+      const hour24 = Math.floor(minutes / 60) % 24
+      const period = hour24 >= 12 ? 'PM' : 'AM'
+      const hour12 = hour24 % 12 || 12
+      return `${hour12}:${(minutes % 60).toString().padStart(2, '0')} ${period}`
+    }
+
+    return {
+      ...stop,
+      timeSlot: `${formatTime(startMinute)} – ${formatTime(endMinute)}`,
+    }
+  })
+}
+
 export default function ItineraryOptimizerView({
   initialDays,
   allPlaces,
@@ -107,6 +210,9 @@ export default function ItineraryOptimizerView({
   stays = [],
   onSelectPlace,
   onSaveTrip,
+  placeToAdd = null,
+  onPlaceAddHandled,
+  onPlaceAdded,
 }: ItineraryOptimizerViewProps) {
   const navigate = useNavigate()
   const [days, setDays] = useState<ItineraryDay[]>(initialDays)
@@ -119,11 +225,98 @@ export default function ItineraryOptimizerView({
     savedDistKm: number
   } | null>(null)
   const [showAddPlaceModal, setShowAddPlaceModal] = useState(false)
+  const [placePendingAdd, setPlacePendingAdd] = useState<Place | null>(null)
+  const [selectedDayIdx, setSelectedDayIdx] = useState(activeDayIdx)
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('')
   const [isSaved, setIsSaved] = useState(false)
   const [rightPanelTab, setRightPanelTab] = useState<'flow' | 'dining' | 'stays'>('flow')
   const [selectedStayId, setSelectedStayId] = useState<string>(stays[0]?.id || '')
+  const [startedDays, setStartedDays] = useState<Record<number, boolean>>({})
+  const [currentTime, setCurrentTime] = useState(() => new Date())
+  const [visitedAt, setVisitedAt] = useState<Record<string, string>>({})
 
   const currentDay = days[activeDayIdx] || days[0]
+  const liveNowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes()
+  const currentLiveStopIndex =
+    startedDays[activeDayIdx]
+      ? currentDay.stops.findIndex(
+          (stop) =>
+            !visitedAt[stop.id] &&
+            liveNowMinutes <= getScheduleMinutes(stop.timeSlot.split('–')[1] || stop.timeSlot)
+        )
+      : -1
+  const currentLiveStopId =
+    currentLiveStopIndex >= 0 ? currentDay.stops[currentLiveStopIndex]?.id : undefined
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!startedDays[activeDayIdx]) return
+    const newlyVisited = currentDay.stops.filter(
+      (stop) =>
+        !visitedAt[stop.id] &&
+        liveNowMinutes > getScheduleMinutes(stop.timeSlot.split('–')[1] || stop.timeSlot)
+    )
+    if (newlyVisited.length === 0) return
+
+    const actualTime = currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    setDays((previous) =>
+      previous.map((day, dayIndex) =>
+        dayIndex === activeDayIdx
+          ? {
+              ...day,
+              stops: day.stops.map((stop) =>
+                newlyVisited.some((visited) => visited.id === stop.id)
+                  ? { ...stop, timeSlot: `${formatTimeWithPeriod(stop.timeSlot)} – ${actualTime} (Visited)` }
+                  : stop
+              ),
+            }
+          : day
+      )
+    )
+    setVisitedAt((previous) => ({
+      ...previous,
+      ...Object.fromEntries(newlyVisited.map((stop) => [stop.id, actualTime])),
+    }))
+  }, [currentTime, activeDayIdx, startedDays, visitedAt, currentDay, liveNowMinutes])
+
+  const startCurrentDay = () => {
+    const now = new Date()
+    const startMinute = now.getHours() * 60 + now.getMinutes()
+    const startTime = `${now.getHours().toString().padStart(2, '0')}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`
+    const updatedDays = [...days]
+    updatedDays[activeDayIdx].stops = recalculateTimeSlotsFromPreference(
+      [...updatedDays[activeDayIdx].stops],
+      -1,
+      startTime,
+      startMinute
+    )
+    setDays(updatedDays)
+    setStartedDays((previous) => ({ ...previous, [activeDayIdx]: true }))
+    setCurrentTime(now)
+  }
+
+  const openPlaceConfirmation = (place: Place) => {
+    if (isPlaceAlreadyAdded(place.id, place.name)) return
+    const dayIndex = Math.min(activeDayIdx, days.length - 1)
+    setPlacePendingAdd(place)
+    setSelectedDayIdx(dayIndex)
+    setSelectedTimeSlot(getPlaceTimeSlot(place, days[dayIndex]?.stops.length || 0).timeSlot)
+    setShowAddPlaceModal(false)
+  }
+
+  useEffect(() => {
+    if (placeToAdd) {
+      openPlaceConfirmation(placeToAdd)
+      onPlaceAddHandled?.()
+    }
+  }, [placeToAdd])
 
   const toggleLock = (stopId: string) => {
     setLockedStops((prev) => ({ ...prev, [stopId]: !prev[stopId] }))
@@ -157,19 +350,7 @@ export default function ItineraryOptimizerView({
     stops[stopIdx - 1] = stops[stopIdx]
     stops[stopIdx] = temp
 
-    // Recalculate timeslots smoothly with 12-hr format (never "14:00 AM")
-    const sequentialSlots = [
-      '8:30 AM – 10:30 AM',
-      '10:45 AM – 12:45 PM',
-      '2:15 PM – 4:15 PM',
-      '4:30 PM – 6:30 PM',
-      '6:45 PM – 8:30 PM',
-    ]
-    stops.forEach((s, i) => {
-      s.timeSlot = sequentialSlots[i] || `${((8 + i * 2) % 12) || 12}:00 ${8 + i * 2 >= 12 ? 'PM' : 'AM'} – ${((10 + i * 2) % 12) || 12}:00 ${10 + i * 2 >= 12 ? 'PM' : 'AM'}`
-    })
-
-    updatedDays[activeDayIdx].stops = stops
+    updatedDays[activeDayIdx].stops = recalculateTimeSlots(stops)
     setDays(updatedDays)
     setOptimizationAlert(null)
   }
@@ -183,20 +364,36 @@ export default function ItineraryOptimizerView({
     stops[stopIdx + 1] = stops[stopIdx]
     stops[stopIdx] = temp
 
-    const sequentialSlots = [
-      '8:30 AM – 10:30 AM',
-      '10:45 AM – 12:45 PM',
-      '2:15 PM – 4:15 PM',
-      '4:30 PM – 6:30 PM',
-      '6:45 PM – 8:30 PM',
-    ]
-    stops.forEach((s, i) => {
-      s.timeSlot = sequentialSlots[i] || `${((8 + i * 2) % 12) || 12}:00 ${8 + i * 2 >= 12 ? 'PM' : 'AM'} – ${((10 + i * 2) % 12) || 12}:00 ${10 + i * 2 >= 12 ? 'PM' : 'AM'}`
-    })
-
-    updatedDays[activeDayIdx].stops = stops
+    updatedDays[activeDayIdx].stops = recalculateTimeSlots(stops)
     setDays(updatedDays)
     setOptimizationAlert(null)
+  }
+
+  const changeStopTime = (stopIdx: number, time: string) => {
+    const updatedDays = [...days]
+    const stops = recalculateTimeSlotsFromPreference(
+      [...updatedDays[activeDayIdx].stops],
+      stopIdx,
+      time
+    )
+    updatedDays[activeDayIdx].stops = stops
+    setDays(updatedDays)
+  }
+
+  const changeStopDuration = (stopIdx: number, durationValue: string) => {
+    const durationMin = Math.max(15, Math.min(720, Number(durationValue)))
+    if (!Number.isFinite(durationMin)) return
+
+    const updatedDays = [...days]
+    const stops = updatedDays[activeDayIdx].stops.map((stop, index) =>
+      index === stopIdx ? { ...stop, durationMin } : stop
+    )
+    updatedDays[activeDayIdx].stops = recalculateTimeSlotsFromPreference(
+      stops,
+      stopIdx,
+      formatTimeInput(days[activeDayIdx].stops[stopIdx].timeSlot)
+    )
+    setDays(updatedDays)
   }
 
   // Remove a stop
@@ -212,19 +409,19 @@ export default function ItineraryOptimizerView({
   }
 
   // Add Place to current day (Strictly prevents adding duplicate sights twice or thrice)
-  const handleAddPlace = (place: Place) => {
+  const handleAddPlace = (place: Place, dayIndex = activeDayIdx, customTimeSlot?: string) => {
     if (isPlaceAlreadyAdded(place.id, place.name)) {
       return // Disallow duplicate place
     }
     const updatedDays = [...days]
-    const stops = [...updatedDays[activeDayIdx].stops]
-    const { timeSlot, durationMin } = getPlaceTimeSlot(place, stops.length)
+    const stops = [...updatedDays[dayIndex].stops]
+    const { timeSlot: suggestedTimeSlot, durationMin } = getPlaceTimeSlot(place, stops.length)
     const newStop: ItineraryStop = {
       id: `custom-${Date.now()}`,
       placeId: place.id,
       placeName: place.name,
       category: place.category,
-      timeSlot,
+      timeSlot: customTimeSlot || suggestedTimeSlot,
       durationMin,
       travelFromPrevMin: 15,
       distanceFromPrevKm: 2.2,
@@ -234,12 +431,14 @@ export default function ItineraryOptimizerView({
       coordinates: place.coordinates,
     }
     stops.push(newStop)
-    updatedDays[activeDayIdx].stops = stops
-    updatedDays[activeDayIdx].totalDaySpend = stops.reduce((acc, s) => acc + s.estimatedCost, 0)
-    updatedDays[activeDayIdx].totalDistanceKm = Number((stops.length * 1.8).toFixed(1))
-    updatedDays[activeDayIdx].totalTravelTimeMin = stops.length * 12
+    stops.sort((a, b) => getTimeSlotStartMinutes(a.timeSlot) - getTimeSlotStartMinutes(b.timeSlot))
+    updatedDays[dayIndex].stops = stops
+    updatedDays[dayIndex].totalDaySpend = stops.reduce((acc, s) => acc + s.estimatedCost, 0)
+    updatedDays[dayIndex].totalDistanceKm = Number((stops.length * 1.8).toFixed(1))
+    updatedDays[dayIndex].totalTravelTimeMin = stops.length * 12
     setDays(updatedDays)
-    setShowAddPlaceModal(false)
+    setPlacePendingAdd(null)
+    onPlaceAdded?.(place)
   }
 
   // ⚡ Optimize My Route (Requirement 10)
@@ -387,21 +586,47 @@ export default function ItineraryOptimizerView({
               <span>{currentDay.themeTitle}</span>
             </h4>
 
-            {/* Optimize Route Button (Requirement 10) */}
-            <button
-              onClick={handleOptimizeRoute}
-              disabled={isOptimizing}
-              className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
-            >
-              <Zap size={14} />
-              <span>{isOptimizing ? 'Optimizing Matrix...' : '⚡ Optimize My Route'}</span>
-            </button>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <span className="text-[11px] font-bold text-slate-500">
+                Live time: {currentTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
+              </span>
+              <button
+                onClick={startCurrentDay}
+                className={`px-4 py-2 rounded-xl text-xs font-black text-white shadow-xs flex items-center gap-1.5 cursor-pointer ${
+                  startedDays[activeDayIdx] ? 'bg-emerald-600' : 'bg-rose-600 hover:bg-rose-700'
+                }`}
+              >
+                <Clock size={14} />
+                <span>{startedDays[activeDayIdx] ? 'Day In Progress' : 'Start Day'}</span>
+              </button>
+              <button
+                onClick={handleOptimizeRoute}
+                disabled={isOptimizing}
+                className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+              >
+                <Zap size={14} />
+                <span>{isOptimizing ? 'Optimizing Matrix...' : '⚡ Optimize My Route'}</span>
+              </button>
+            </div>
           </div>
 
           {/* Timeline Sequence */}
           <div className="relative border-l-2 border-slate-200 ml-4 pl-6 space-y-6">
-            {currentDay.stops.map((stop, idx) => {
+            {currentDay.stops
+              .map((stop, originalIndex) => ({ stop, originalIndex }))
+              .sort((a, b) => {
+                const aVisited = Boolean(visitedAt[a.stop.id])
+                const bVisited = Boolean(visitedAt[b.stop.id])
+                if (aVisited !== bVisited) return aVisited ? -1 : 1
+                return a.originalIndex - b.originalIndex
+              })
+              .map(({ stop, originalIndex: idx }) => {
               const matchedPlace = allPlaces.find((p) => p.id === stop.placeId)
+              const recommendedVisitTime = matchedPlace?.bestTimeToVisit?.split('(')[0].trim()
+              const endMinutes = getScheduleMinutes(stop.timeSlot.split('–')[1] || stop.timeSlot)
+              const isCompleted = Boolean(visitedAt[stop.id])
+              const isCurrent =
+                startedDays[activeDayIdx] && stop.id === currentLiveStopId
 
               return (
                 <div key={stop.id} className="space-y-6">
@@ -410,16 +635,62 @@ export default function ItineraryOptimizerView({
                     <div className="absolute -left-[31px] top-4 w-4 h-4 rounded-full bg-blue-600 border-4 border-white shadow-sm ring-2 ring-blue-600/30" />
 
                     {/* Stop Card */}
-                    <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:shadow-md transition-all space-y-3">
+                    <div className={`p-4 rounded-2xl border shadow-xs transition-all space-y-3 ${
+                      isCompleted
+                        ? 'bg-emerald-50 border-emerald-500'
+                        : isCurrent
+                          ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-400/20'
+                          : 'bg-white border-slate-200/90 hover:shadow-md'
+                    }`}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-black px-2 py-0.5 rounded bg-blue-50 text-blue-700">
-                              {stop.timeSlot}
-                            </span>
-                            <span className="text-[11px] font-bold text-slate-400 uppercase">
-                              {stop.durationMin} mins duration
-                            </span>
+                            {(isCompleted || isCurrent) && (
+                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                                isCompleted ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                              }`}>
+                                {isCompleted ? 'Visited' : 'Next Visit'}
+                              </span>
+                            )}
+                            <label
+                              className="inline-flex items-center gap-1.5 text-xs font-black px-2 py-1 rounded bg-blue-50 text-blue-700 cursor-pointer"
+                              onClick={(event) => event.stopPropagation()}
+                              title="Choose your preferred visit start time. Later visits will be adjusted automatically."
+                            >
+                              <Clock size={12} />
+                              <span className="text-[10px] uppercase tracking-wide">Your time</span>
+                              <span>{formatTimeWithPeriod(stop.timeSlot)}</span>
+                              <input
+                                type="time"
+                                value={formatTimeInput(stop.timeSlot)}
+                                onChange={(event) => changeStopTime(idx, event.target.value)}
+                                className="sr-only"
+                                aria-label={`Preferred start time for ${stop.placeName}`}
+                              />
+                              <span>– {formatTimeWithPeriod(stop.timeSlot.split('–')[1]?.trim() || stop.timeSlot)}</span>
+                            </label>
+                            <label
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase"
+                              onClick={(event) => event.stopPropagation()}
+                              title="Set how long you want to spend at this location"
+                            >
+                              <input
+                                type="number"
+                                min="15"
+                                max="720"
+                                step="15"
+                                value={stop.durationMin}
+                                onChange={(event) => changeStopDuration(idx, event.target.value)}
+                                className="w-14 rounded border border-slate-200 bg-white px-1 py-0.5 text-center font-black text-slate-700 outline-blue-500"
+                                aria-label={`Visit duration in minutes for ${stop.placeName}`}
+                              />
+                              <span>mins</span>
+                            </label>
+                            {recommendedVisitTime && (
+                              <span className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/70 px-2 py-0.5 rounded-md">
+                                Recommended: {recommendedVisitTime}
+                              </span>
+                            )}
                             {matchedPlace?.bestTimeToVisit && (
                               <span className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/70 px-2 py-0.5 rounded-md">
                                 ✨ Best: {matchedPlace.bestTimeToVisit.split('(')[0].trim()}
@@ -548,7 +819,7 @@ export default function ItineraryOptimizerView({
                   )}
                 </div>
               )
-            })}
+              })}
           </div>
 
           {/* + Add Place Button */}
@@ -895,13 +1166,73 @@ export default function ItineraryOptimizerView({
                 </button>
               </div>
 
+              {placePendingAdd ? (
+                <div className="space-y-4">
+                  <div className="rounded-2xl bg-blue-50 border border-blue-100 p-4">
+                    <div className="text-sm font-black text-slate-900">{placePendingAdd.name}</div>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Suggested around {placePendingAdd.bestTimeToVisit || 'daytime'} based on the best time to visit.
+                    </p>
+                  </div>
+
+                  <label className="block text-xs font-black uppercase tracking-wide text-slate-600">
+                    Add to tour day
+                    <select
+                      value={selectedDayIdx}
+                      onChange={(event) => {
+                        const nextDayIdx = Number(event.target.value)
+                        setSelectedDayIdx(nextDayIdx)
+                        setSelectedTimeSlot(
+                          getPlaceTimeSlot(placePendingAdd, days[nextDayIdx]?.stops.length || 0).timeSlot
+                        )
+                      }}
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-900"
+                    >
+                      {days.map((day, index) => (
+                        <option key={day.dayNumber} value={index}>
+                          Day {day.dayNumber}{day.dateLabel ? ` · ${day.dateLabel}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block text-xs font-black uppercase tracking-wide text-slate-600">
+                    Visit time
+                    <input
+                      type="text"
+                      value={selectedTimeSlot}
+                      onChange={(event) => setSelectedTimeSlot(event.target.value)}
+                      placeholder="e.g. 10:00 AM – 12:00 PM"
+                      className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-900"
+                    />
+                    <span className="mt-1 block text-[11px] font-medium normal-case text-slate-500">
+                      This is a suggestion. Change it to fit your plans.
+                    </span>
+                  </label>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPlacePendingAdd(null)}
+                      className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-black text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={() => handleAddPlace(placePendingAdd, selectedDayIdx, selectedTimeSlot)}
+                      className="flex-1 rounded-xl bg-blue-600 py-2.5 text-xs font-black text-white hover:bg-blue-700 cursor-pointer"
+                    >
+                      Add to Day {days[selectedDayIdx]?.dayNumber}
+                    </button>
+                  </div>
+                </div>
+              ) : (
               <div className="space-y-2">
                 {allPlaces.map((place) => {
                   const alreadyAdded = isPlaceAlreadyAdded(place.id, place.name)
                   return (
                     <div
                       key={place.id}
-                      onClick={() => !alreadyAdded && handleAddPlace(place)}
+                      onClick={() => !alreadyAdded && openPlaceConfirmation(place)}
                       className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
                         alreadyAdded
                           ? 'border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed'
@@ -935,6 +1266,7 @@ export default function ItineraryOptimizerView({
                   )
                 })}
               </div>
+              )}
             </motion.div>
           </div>
         )}

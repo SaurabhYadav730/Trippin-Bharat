@@ -8,13 +8,25 @@
     "build": "tsc",
     "start": "node dist/server.js"
   },
-  "keywords": ["tourism", "india", "itinerary-planner", "sih-2026", "express", "typescript"],
+  "keywords": [
+    "tourism",
+    "india",
+    "itinerary-planner",
+    "sih-2026",
+    "express",
+    "typescript"
+  ],
   "author": "Yātra Team",
   "license": "MIT",
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.9.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

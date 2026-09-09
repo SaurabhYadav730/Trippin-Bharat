@@ -44,6 +44,8 @@ export default function DestinationPage() {
   const [showTripBuilder, setShowTripBuilder] = useState(false)
   const [showSavedTripsDrawer, setShowSavedTripsDrawer] = useState(false)
   const [exploreCategoryFilter, setExploreCategoryFilter] = useState<'all' | 'palaces' | 'temples' | 'lakes' | 'heritage'>('all')
+  const [addedPlaceIds, setAddedPlaceIds] = useState<Set<string>>(new Set())
+  const [placeToAddToItinerary, setPlaceToAddToItinerary] = useState<Place | null>(null)
 
   const tabsRef = useRef<HTMLDivElement>(null)
 
@@ -68,18 +70,19 @@ export default function DestinationPage() {
   }
 
   // Find curated style matching user's query or default to first
+  const stylesList = destinationData.curatedForStyles || []
   const matchedStyle =
-    destinationData.curatedForStyles.find(
+    stylesList.find(
       (s) =>
         s.styleTitle.toLowerCase().includes(styleParam.toLowerCase()) ||
         styleParam.toLowerCase().includes(s.styleTitle.toLowerCase()) ||
         s.styleId.toLowerCase() === styleParam.toLowerCase()
-    ) || destinationData.curatedForStyles[0]
+    ) || stylesList[0]
 
   // Sights curated for user's selected style
   const curatedPlaces = matchedStyle
-    ? destinationData.places.filter((p) => matchedStyle.recommendedPlaceIds.includes(p.id))
-    : destinationData.places.slice(0, 6)
+    ? (destinationData.places || []).filter((p) => matchedStyle.recommendedPlaceIds.includes(p.id))
+    : (destinationData.places || []).slice(0, 6)
 
   // Filter places in Explore Tab
   const explorePlaces = destinationData.places.filter((p) => {
@@ -131,14 +134,7 @@ export default function DestinationPage() {
           onBuildTripClick={() => navigate(`/build-trip?dest=${destinationData.slug}`)}
         />
 
-        {/* 2. Personalized Curation for selected style */}
-        <PersonalizedCuration
-          styleTitle={matchedStyle ? matchedStyle.styleTitle : styleParam}
-          places={curatedPlaces}
-          onSelectPlace={(place) => setSelectedPlaceForModal(place)}
-        />
-
-        {/* 3. Sticky Master Navigation Tabs Ribbon (Requirement 3) */}
+        {/* 2. Sticky Master Navigation Tabs Ribbon (Requirement 3) */}
         <div ref={tabsRef} className="sticky top-16 z-30 bg-white/95 backdrop-blur-md border-y border-slate-200 shadow-xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between overflow-x-auto no-scrollbar py-2">
@@ -291,6 +287,13 @@ export default function DestinationPage() {
                   </div>
                 ))}
               </div>
+
+              {/* Handpicked sights follows the full Explore Sights section */}
+              <PersonalizedCuration
+                styleTitle={matchedStyle ? matchedStyle.styleTitle : styleParam}
+                places={curatedPlaces}
+                onSelectPlace={(place) => setSelectedPlaceForModal(place)}
+              />
             </div>
           )}
 
@@ -307,15 +310,17 @@ export default function DestinationPage() {
             <div className="space-y-8">
               <div>
                 <h3 className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
-                  Mewari Flavors & Lakeside Dining
+                Local Flavors & Dining in {destinationData.name}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium mt-1">
-                  From royal Rajasthani Thalis soaked in pure Desi Ghee to candlelit sunset dinners facing the illuminated City Palace:
+                Discover nearby dining from affordable local plates to premium destination experiences, with prices shown for two people:
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {destinationData.foodSpots.map((spot) => (
+                {[...destinationData.foodSpots]
+                  .sort((a, b) => a.priceForTwo - b.priceForTwo)
+                  .map((spot) => (
                   <div
                     key={spot.id}
                     className="p-5 rounded-3xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row gap-5"
@@ -334,6 +339,9 @@ export default function DestinationPage() {
                             ★ {spot.rating}
                           </span>
                         </div>
+                        <span className="inline-block text-[10px] font-black uppercase tracking-wider text-slate-500 mt-1">
+                          {spot.priceForTwo < 800 ? 'Affordable' : spot.priceForTwo < 1800 ? 'Mid-range' : 'Premium'}
+                        </span>
                         <h4 className="text-lg font-black text-slate-900 mt-1">{spot.name}</h4>
                         <p className="text-xs text-slate-500 font-medium truncate">{spot.address}</p>
                       </div>
@@ -345,7 +353,7 @@ export default function DestinationPage() {
                             <span key={i} className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                               {dish}
                             </span>
-                          ))}
+                            ))}
                         </div>
                       </div>
 
@@ -448,6 +456,15 @@ export default function DestinationPage() {
               stays={destinationData.stays}
               onSelectPlace={(place) => setSelectedPlaceForModal(place)}
               onSaveTrip={handleSaveTrip}
+              placeToAdd={placeToAddToItinerary}
+              onPlaceAddHandled={() => setPlaceToAddToItinerary(null)}
+              onPlaceAdded={(place) => {
+                setAddedPlaceIds((previousIds) => {
+                  const nextIds = new Set(previousIds)
+                  nextIds.add(place.id)
+                  return nextIds
+                })
+              }}
             />
           )}
         </div>
@@ -459,8 +476,10 @@ export default function DestinationPage() {
       <PlaceDashboardModal
         place={selectedPlaceForModal}
         onClose={() => setSelectedPlaceForModal(null)}
+        isAdded={selectedPlaceForModal ? addedPlaceIds.has(selectedPlaceForModal.id) : false}
         onAddToItinerary={(place) => {
-          // Switch to plan tab and add
+          setPlaceToAddToItinerary(place)
+          setSelectedPlaceForModal(null)
           scrollToTabs('plan')
         }}
         onSelectNearby={(nearbyId) => {

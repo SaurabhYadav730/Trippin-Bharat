@@ -9,7 +9,8 @@ import {
   ArrowRight,
   Check,
   Navigation,
-  Car
+  Car,
+  ChevronDown
 } from 'lucide-react'
 import type { StayHotel } from '../../types/destination'
 
@@ -22,8 +23,26 @@ export default function StayItineraryConnector({
   stays,
   onBuildFromHotel,
 }: StayItineraryConnectorProps) {
-  const [selectedStay, setSelectedStay] = useState<StayHotel>(stays[0])
+  const tierOrder: Record<string, number> = {
+    budget: 0,
+    comfort: 1,
+    luxury: 2,
+    ultra_luxury: 3,
+  }
+  const orderedStays = [...stays].sort(
+    (a, b) =>
+      (tierOrder[a.tier || 'comfort'] ?? 1) - (tierOrder[b.tier || 'comfort'] ?? 1) ||
+      a.pricePerNight - b.pricePerNight
+  )
+  const [selectedStay, setSelectedStay] = useState<StayHotel>(orderedStays[0])
   const [activeModalHotel, setActiveModalHotel] = useState<StayHotel | null>(null)
+  const [expandedTier, setExpandedTier] = useState<string>('budget')
+  const tierSections = [
+    { id: 'budget', label: 'Affordable Stays', description: 'Value-focused stays near your itinerary' },
+    { id: 'comfort', label: 'Comfort Stays', description: 'Extra space, amenities, and local character' },
+    { id: 'luxury', label: 'Luxury Stays', description: 'Premium rooms, service, and destination experiences' },
+    { id: 'ultra_luxury', label: 'Ultra-Luxury Stays', description: 'Exclusive villas, palace service, and signature hospitality' },
+  ] as const
 
   return (
     <div className="space-y-8">
@@ -38,14 +57,57 @@ export default function StayItineraryConnector({
             Best Stays for Your Heritage Journey
           </h3>
           <p className="text-sm text-slate-600 font-medium mt-1">
-            Every stay is dynamically mapped against your itinerary sights so you spend less time in cabs and more time experiencing Udaipur:
+            Every stay is mapped against your itinerary sights, with destination-specific rates ordered from affordable to ultra-luxury:
           </p>
         </div>
       </div>
 
-      {/* Grid of Stays with Radial Sights Proximity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {stays.map((stay) => {
+      {/* Grouped stay sections with Radial Sights Proximity */}
+      <div className="space-y-10">
+        {tierSections.map((section) => {
+          const sectionStays = orderedStays
+            .filter((stay) => (stay.tier || 'comfort') === section.id)
+            .sort((a, b) => a.pricePerNight - b.pricePerNight)
+
+          if (sectionStays.length === 0) return null
+
+          const isExpanded = expandedTier === section.id
+
+          return (
+            <section
+              key={section.id}
+              className="rounded-3xl border border-slate-200 bg-white overflow-hidden"
+              aria-labelledby={`${section.id}-stays-heading`}
+            >
+              <button
+                type="button"
+                onClick={() => setExpandedTier(isExpanded ? '' : section.id)}
+                className="w-full flex items-center justify-between gap-4 p-5 text-left hover:bg-slate-50 transition-colors cursor-pointer"
+                aria-expanded={isExpanded}
+              >
+                <div>
+                  <h4
+                  id={`${section.id}-stays-heading`}
+                  className="text-xl sm:text-2xl font-black text-slate-900 font-display"
+                  >
+                    {section.label}
+                  </h4>
+                  <p className="text-sm text-slate-500 font-medium mt-1">{section.description}</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-xs font-bold text-slate-400">
+                    {sectionStays.length} {sectionStays.length === 1 ? 'stay' : 'stays'}
+                  </span>
+                  <ChevronDown
+                    size={20}
+                    className={`text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                  />
+                </div>
+              </button>
+
+              {isExpanded && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 pt-0">
+                {sectionStays.map((stay) => {
           const isSelected = selectedStay.id === stay.id
 
           return (
@@ -151,6 +213,11 @@ export default function StayItineraryConnector({
                 </div>
               </div>
             </div>
+          )
+                })}
+              </div>
+              )}
+            </section>
           )
         })}
       </div>
