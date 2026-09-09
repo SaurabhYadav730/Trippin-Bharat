@@ -1,31 +1,36 @@
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
+import { config } from './config/environment.js'
+import { connectDatabase } from './config/database.js'
+import { seedDatabase } from './database/seeder.js'
 
 import healthRoutes from './routes/health.routes.js'
 import destinationRoutes from './routes/destination.routes.js'
 import itineraryRoutes from './routes/itinerary.routes.js'
+import tripRoutes from './routes/trip.routes.js'
 import authRoutes from './routes/auth.routes.js'
-
-dotenv.config()
+import adminRoutes from './routes/admin.routes.js'
+import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = config.port
 
-// Middleware
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174').split(',')
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
-      callback(null, true)
-    } else {
-      callback(null, true) // permissive in development
-    }
-  },
-  credentials: true
-}))
+// CORS Configuration
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || config.corsOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+        callback(null, true)
+      } else {
+        callback(null, true) // Permissive during development & preview
+      }
+    },
+    credentials: true,
+  })
+)
 
-app.use(express.json())
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Request Logger
 app.use((req, res, next) => {
@@ -37,39 +42,69 @@ app.use((req, res, next) => {
   next()
 })
 
-// Base API Routes
+// Public & Traveler API Routes
 app.use('/api/health', healthRoutes)
 app.use('/api/destinations', destinationRoutes)
 app.use('/api/itinerary', itineraryRoutes)
+app.use('/api/routes', itineraryRoutes) // Alias for route optimization
+app.use('/api/trips', tripRoutes)
 app.use('/api/auth', authRoutes)
 
-// Root health & welcome endpoint
-app.get('/', (req, res) => {
+// Admin Panel API Routes (Unified Backend for Admin & Main)
+app.use('/api/admin', adminRoutes)
+
+// Root API Explorer
+app.get('/', (_req, res) => {
   res.json({
-    name: 'Yātra Tourism Intelligence API',
-    version: '1.0.0',
+    name: 'Yātra Tourism Intelligence & Operations API',
+    version: '2.0.0',
     edition: 'Smart India Hackathon (SIH 2026)',
     status: 'online',
-    endpoints: [
-      '/api/health',
-      '/api/destinations',
-      '/api/destinations/:slug',
-      '/api/destinations/:slug/places',
-      '/api/itinerary/plan',
-      '/api/auth/login',
-      '/api/auth/signup',
-    ]
+    architecture: 'MERN Stack (MongoDB + Express.js + React.js + Node.js)',
+    endpoints: {
+      health: '/api/health',
+      auth: ['/api/auth/login', '/api/auth/signup', '/api/auth/me', '/api/auth/logout'],
+      traveler: [
+        '/api/destinations',
+        '/api/destinations/:slug',
+        '/api/destinations/:slug/places',
+        '/api/itinerary/plan',
+        '/api/routes/optimize',
+        '/api/trips',
+      ],
+      admin: [
+        '/api/admin/destinations',
+        '/api/admin/attractions',
+        '/api/admin/hotels',
+        '/api/admin/restaurants',
+        '/api/admin/cuisines',
+        '/api/admin/dishes',
+        '/api/admin/experiences',
+        '/api/admin/media',
+        '/api/admin/audit-logs',
+        '/api/admin/analytics/overview',
+      ],
+    },
   })
 })
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route ${req.method} ${req.originalUrl} not found` })
-})
+// 404 and Error Handling
+app.use(notFoundHandler)
+app.use(errorHandler)
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Yātra API Server running on port ${PORT} [http://localhost:${PORT}]`)
-})
+// Initialize and start server
+async function startServer() {
+  // Connect to MongoDB
+  const connected = await connectDatabase()
+  if (connected) {
+    await seedDatabase()
+  }
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Yātra MERN Backend API running on port ${PORT} [http://localhost:${PORT}]`)
+  })
+}
+
+startServer()
 
 export default app

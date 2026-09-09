@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express'
-import { itineraryEngine } from '../services/itineraryEngine.js'
+import { itineraryEngine } from '../services/planner/itineraryEngine.js'
+import { RouteOptimizationService } from '../services/planner/routeOptimization.service.js'
 import type { ItineraryRequest } from '../types/index.js'
 
 export const itineraryController = {
   plan(req: Request, res: Response) {
     try {
       const planReq: ItineraryRequest = {
-        destinationSlug: req.body.destinationSlug || req.query.destination as string || 'udaipur',
+        destinationSlug: req.body.destinationSlug || (req.query.destination as string) || 'udaipur',
         durationDays: parseInt(req.body.durationDays || req.query.duration || '3', 10),
         pace: req.body.pace || 'balanced',
         budgetTier: req.body.budgetTier || 'comfort',
@@ -20,5 +21,15 @@ export const itineraryController = {
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message || 'Failed to generate itinerary' })
     }
-  }
+  },
+
+  optimize(req: Request, res: Response) {
+    try {
+      const stops = req.body.stops || []
+      const result = RouteOptimizationService.optimizeRoute(stops)
+      res.json(result)
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message || 'Failed to optimize route' })
+    }
+  },
 }

@@ -79,9 +79,14 @@ SIH 2026/
 ├── backend/                      # Server REST API
 │   ├── src/
 │   │   ├── controllers/          # Endpoint controllers (destinations, itinerary, health)
-│   │   ├── data/                 # Seeded Indian heritage database
+│   │   ├── config/               # Environment and database configuration
+│   │   ├── data/                 # In-memory catalog fallback for itinerary APIs
+│   │   ├── database/             # MongoDB bootstrap and database seeding
+│   │   ├── middleware/           # Authentication, RBAC, and error middleware
+│   │   ├── models/               # Mongoose persistence models
 │   │   ├── routes/               # Express router endpoints
-│   │   ├── services/             # Itinerary planning & TSP optimization engine
+│   │   ├── services/             # Domain services
+│   │   │   └── planner/          # Itinerary planning and route optimization
 │   │   ├── types/                # Server domain types
 │   │   └── server.ts             # Express server setup & middleware
 │   ├── .env.example              # Backend environment config

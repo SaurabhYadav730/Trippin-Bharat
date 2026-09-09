@@ -69,9 +69,14 @@ npm start
 backend/
 ├── src/
 │   ├── controllers/      # Request handlers
-│   ├── data/             # Seeded Indian heritage datasets
-│   ├── routes/           # Express router endpoints
-│   ├── services/         # Itinerary optimization algorithms
+│   ├── config/            # Environment and database configuration
+│   ├── data/              # In-memory catalog fallback (`catalog.ts`)
+│   ├── database/          # MongoDB bootstrap and database seeding
+│   ├── middleware/        # Auth, RBAC, and error handling
+│   ├── models/            # Mongoose persistence models
+│   ├── routes/            # Express router endpoints
+│   ├── services/          # Domain services
+│   │   └── planner/       # Itinerary engine and route optimization
 │   ├── types/            # TypeScript interfaces
 │   └── server.ts         # Server bootstrap
 ├── package.json
