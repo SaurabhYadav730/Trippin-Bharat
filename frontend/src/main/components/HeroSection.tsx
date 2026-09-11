@@ -1,19 +1,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Search, 
-  MapPin, 
-  Calendar, 
-  Sparkles, 
-  Compass, 
-  Landmark, 
-  Building2, 
-  UtensilsCrossed, 
-  Palette, 
-  Layers, 
-  ChevronDown, 
-  TrendingUp, 
+import {
+  Search,
+  MapPin,
+  Calendar,
+  Sparkles,
+  Compass,
+  Landmark,
+  Building2,
+  UtensilsCrossed,
+  Palette,
+  Layers,
+  ChevronDown,
+  TrendingUp,
   Check,
   Mountain,
   Waves,
@@ -55,11 +55,11 @@ export interface DestinationItem {
 
 // Curated Indian destinations with verified images & destination-specific authentic experiences
 export const curatedDestinations: DestinationItem[] = [
-  { 
-    city: 'Jaipur', 
-    state: 'Rajasthan', 
-    sub: 'The Pink City · 24+ Forts & Palaces', 
-    rating: '4.9', 
+  {
+    city: 'Jaipur',
+    state: 'Rajasthan',
+    sub: 'The Pink City · 24+ Forts & Palaces',
+    rating: '4.9',
     tag: 'Top Visited',
     image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=800&q=80&auto=format',
     bestSeason: 'Oct – Mar',
@@ -71,11 +71,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'adventure', title: 'Aravalli Sunrise & Ballooning', sub: 'Hot air balloon flights over desert fortresses', tag: 'Adventure', icon: Compass },
     ]
   },
-  { 
-    city: 'Shillong', 
-    state: 'Meghalaya', 
-    sub: 'Living Root Bridges & Waterfalls', 
-    rating: '4.7', 
+  {
+    city: 'Shillong',
+    state: 'Meghalaya',
+    sub: 'Living Root Bridges & Waterfalls',
+    rating: '4.7',
     tag: 'Offbeat',
     image: 'https://images.unsplash.com/photo-1571536802807-30451e3955d8?w=800&q=80&auto=format',
     bestSeason: 'Sep – May',
@@ -87,11 +87,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'village', title: 'Cleanest Village & Sacred Groves', sub: 'Mawlynnong eco-walk & Mawphlang ancient forest', tag: 'Unique', icon: Sparkles },
     ]
   },
-  { 
-    city: 'Varanasi', 
-    state: 'Uttar Pradesh', 
-    sub: 'Eternal Ghats & Kashi Vishwanath', 
-    rating: '4.9', 
+  {
+    city: 'Varanasi',
+    state: 'Uttar Pradesh',
+    sub: 'Eternal Ghats & Kashi Vishwanath',
+    rating: '4.9',
     tag: 'Spiritual',
     image: 'https://images.unsplash.com/photo-1561361058-c24cecae35ca?w=800&q=80&auto=format',
     bestSeason: 'Oct – Mar',
@@ -103,11 +103,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'boat', title: 'Dawn Mystic Boat Rowing', sub: 'Sunrise heritage boat cruise along 84 Ghats', tag: 'Signature', icon: Compass },
     ]
   },
-  { 
-    city: 'Udaipur', 
-    state: 'Rajasthan', 
-    sub: 'City of Lakes & Mewar Grandeur', 
-    rating: '4.8', 
+  {
+    city: 'Udaipur',
+    state: 'Rajasthan',
+    sub: 'City of Lakes & Mewar Grandeur',
+    rating: '4.8',
     tag: 'Romantic',
     image: 'https://images.unsplash.com/photo-1615836245337-f5b9b2303f10?w=800&q=80&auto=format',
     bestSeason: 'Sep – Mar',
@@ -119,11 +119,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'folk', title: 'Bagore Ki Haveli Folk Dances', sub: 'Dharohar authentic Rajasthani cultural performance', tag: 'Culture', icon: Sparkles },
     ]
   },
-  { 
-    city: 'Hampi', 
-    state: 'Karnataka', 
-    sub: 'UNESCO World Heritage Ruins', 
-    rating: '4.9', 
+  {
+    city: 'Hampi',
+    state: 'Karnataka',
+    sub: 'UNESCO World Heritage Ruins',
+    rating: '4.9',
     tag: 'Historic',
     image: 'https://images.unsplash.com/photo-1580619305218-8423a7ef79b4?w=800&q=80&auto=format',
     bestSeason: 'Oct – Feb',
@@ -135,11 +135,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'cafes', title: 'South Indian Heritage Cafes', sub: 'Filter coffee, mango tree cafe garden trails', tag: 'Culinary', icon: UtensilsCrossed },
     ]
   },
-  { 
-    city: 'Munnar & Alleppey', 
-    state: 'Kerala', 
-    sub: 'Backwaters & Rolling Tea Hills', 
-    rating: '4.8', 
+  {
+    city: 'Munnar & Alleppey',
+    state: 'Kerala',
+    sub: 'Backwaters & Rolling Tea Hills',
+    rating: '4.8',
     tag: 'Nature',
     image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&q=80&auto=format',
     bestSeason: 'Sep – Mar',
@@ -151,11 +151,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'wildlife', title: 'Eravikulam & Anamudi Wildlife', sub: 'Nilgiri Tahr sightings & high-altitude flora safari', tag: 'Wildlife', icon: Mountain },
     ]
   },
-  { 
-    city: 'Leh & Nubra', 
-    state: 'Ladakh', 
-    sub: 'High Himalayan Monasteries & Passes', 
-    rating: '4.9', 
+  {
+    city: 'Leh & Nubra',
+    state: 'Ladakh',
+    sub: 'High Himalayan Monasteries & Passes',
+    rating: '4.9',
     tag: 'Adventure',
     image: 'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?w=800&q=80&auto=format',
     bestSeason: 'May – Sep',
@@ -167,11 +167,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'ladakhi', title: 'Ladakhi Butter Tea & Momo Trails', sub: 'Steaming Momos, Thukpa, Skyu & Tsampa culinary walk', tag: 'Culture', icon: UtensilsCrossed },
     ]
   },
-  { 
-    city: 'Agra', 
-    state: 'Uttar Pradesh', 
-    sub: 'Taj Mahal & Mughal Architecture', 
-    rating: '4.8', 
+  {
+    city: 'Agra',
+    state: 'Uttar Pradesh',
+    sub: 'Taj Mahal & Mughal Architecture',
+    rating: '4.8',
     tag: 'Wonder',
     image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80&auto=format',
     bestSeason: 'Oct – Mar',
@@ -183,11 +183,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'circuit', title: 'Keoladeo Bird Sanctuary Day Trail', sub: 'UNESCO migratory bird wetland cycling trail', tag: 'Nature', icon: Trees },
     ]
   },
-  { 
-    city: 'Goa', 
-    state: 'Goa', 
-    sub: 'Golden Coast, Latin Quarters & Seafood', 
-    rating: '4.8', 
+  {
+    city: 'Goa',
+    state: 'Goa',
+    sub: 'Golden Coast, Latin Quarters & Seafood',
+    rating: '4.8',
     tag: 'Coastal',
     image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&q=80&auto=format',
     bestSeason: 'Nov – Apr',
@@ -199,11 +199,11 @@ export const curatedDestinations: DestinationItem[] = [
       { id: 'forts', title: 'Coastal Forts & Sunset Points', sub: 'Chapora Fort, Aguada Lighthouse & sea cliffs', tag: 'Views', icon: Compass },
     ]
   },
-  { 
-    city: 'Rishikesh', 
-    state: 'Uttarakhand', 
-    sub: 'Yoga Capital, River Rapids & Ganga Aarti', 
-    rating: '4.8', 
+  {
+    city: 'Rishikesh',
+    state: 'Uttarakhand',
+    sub: 'Yoga Capital, River Rapids & Ganga Aarti',
+    rating: '4.8',
     tag: 'Adventure & Zen',
     image: 'https://images.unsplash.com/photo-1603468625902-1c0051033c37?w=800&q=80&auto=format',
     bestSeason: 'Sep – Jun',
@@ -241,6 +241,48 @@ function getDurationDays(durationValue: string) {
 
   const customDays = Number.parseInt(durationValue, 10)
   return Number.isNaN(customDays) ? 0 : customDays
+}
+
+function addDaysToDate(date: Date, days: number): string {
+  const next = new Date(date)
+  next.setDate(next.getDate() + days)
+  return next.toISOString().slice(0, 10)
+}
+
+function formatDateForDisplay(dateValue: string): string {
+  const [year, month, day] = dateValue.split('-')
+  return year && month && day ? `${day}/${month}/${year}` : ''
+}
+
+function parseDisplayDate(dateValue: string): string | null {
+  const match = dateValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (!match) return null
+
+  const [, day, month, year] = match
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day))
+  if (
+    parsed.getFullYear() !== Number(year) ||
+    parsed.getMonth() !== Number(month) - 1 ||
+    parsed.getDate() !== Number(day)
+  ) {
+    return null
+  }
+
+  return `${year}-${month}-${day}`
+}
+
+function normalizeDateInput(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+function getInclusiveDateDifference(startDate: string, endDate: string): number {
+  const start = new Date(`${startDate}T00:00:00`)
+  const end = new Date(`${endDate}T00:00:00`)
+  const difference = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
+  return Number.isFinite(difference) ? difference : 0
 }
 
 function getGoldenSpotForDuration(city: DestinationItem, durationValue: string) {
@@ -282,9 +324,13 @@ export default function HeroSection() {
   const [showDestDropdown, setShowDestDropdown] = useState(false)
   const [showDurationDropdown, setShowDurationDropdown] = useState(false)
   const [showExperienceDropdown, setShowExperienceDropdown] = useState(false)
-  
+
   const [selectedDuration, setSelectedDuration] = useState(defaultDuration)
-  const [customDurationDays, setCustomDurationDays] = useState('')
+  const initialStartDate = new Date().toISOString().slice(0, 10)
+  const [startDate, setStartDate] = useState(initialStartDate)
+  const [endDate, setEndDate] = useState(addDaysToDate(new Date(), 1))
+  const [startDateInput, setStartDateInput] = useState(formatDateForDisplay(initialStartDate))
+  const [endDateInput, setEndDateInput] = useState(formatDateForDisplay(addDaysToDate(new Date(), 1)))
   const [selectedExperience, setSelectedExperience] = useState<DestinationExperience>(goldenSpotExperience)
 
   const searchContainerRef = useRef<HTMLDivElement>(null)
@@ -301,6 +347,31 @@ export default function HeroSection() {
     setSelectedExperience(getGoldenSpotForDuration(selectedCity, duration.value))
     setShowDurationDropdown(false)
     setShowExperienceDropdown(true)
+  }
+
+  const handleDateChange = (nextStartDate: string, nextEndDate: string) => {
+    if (!nextStartDate || !nextEndDate) return
+    if (nextEndDate < nextStartDate) {
+      setStartDate(nextStartDate)
+      setEndDate(nextStartDate)
+      setStartDateInput(formatDateForDisplay(nextStartDate))
+      setEndDateInput(formatDateForDisplay(nextStartDate))
+      return
+    }
+    const days = getInclusiveDateDifference(nextStartDate, nextEndDate)
+    setStartDate(nextStartDate)
+    setEndDate(nextEndDate)
+    setStartDateInput(formatDateForDisplay(nextStartDate))
+    setEndDateInput(formatDateForDisplay(nextEndDate))
+    if (days >= 1) {
+      setSelectedDuration({
+        value: `${days} Days`,
+        label: `${days} Days`,
+        badge: 'Date range',
+        desc: `${nextStartDate} to ${nextEndDate}`,
+      })
+      setSelectedExperience(getGoldenSpotForDuration(selectedCity, `${days} Days`))
+    }
   }
 
   // Helper when selecting a city: automatically set the authentic style for that destination
@@ -320,11 +391,11 @@ export default function HeroSection() {
   // Filter suggestions
   const filtered = searchQuery.trim() === ''
     ? curatedDestinations
-    : curatedDestinations.filter(d => 
-        d.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.sub.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    : curatedDestinations.filter(d =>
+      d.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.sub.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -345,8 +416,8 @@ export default function HeroSection() {
   }, [])
 
   return (
-    <section className="relative pt-24 lg:pt-28 pb-32 sm:pb-40 bg-slate-900 z-20">
-      
+    <section className="relative min-h-screen flex flex-col justify-start pt-24 lg:pt-28 pb-16 sm:pb-20 bg-slate-950 z-20">
+
       {/* ── High-Impact Cinematic Background Image (MMT Style) ── */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <img
@@ -358,12 +429,12 @@ export default function HeroSection() {
             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1920&q=85&auto=format'
           }}
         />
-        {/* Deep cinematic gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/55 to-slate-950/95" />
+        {/* Cinematic dark overlay preserving full photo vibrancy & text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-slate-950" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+
         {/* Headline text on dark backdrop for dramatic punch */}
         <div className="text-center max-w-3xl mx-auto mb-8">
           <motion.h1
@@ -386,7 +457,7 @@ export default function HeroSection() {
 
         {/* ── MakeMyTrip Style Main Booking & Search Engine Card ── */}
         <div className="max-w-6xl mx-auto">
-          
+
           {/* Top Floating Category Ribbon (MMT Icon Dock) */}
           <div className="bg-white rounded-t-3xl border border-b-0 border-slate-200 shadow-2xl px-3 sm:px-6 pt-3 overflow-x-auto no-scrollbar">
             <div className="flex items-center justify-between min-w-[700px] sm:min-w-0">
@@ -397,18 +468,16 @@ export default function HeroSection() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-t-xl transition-all cursor-pointer relative ${
-                      isActive
-                        ? 'text-blue-600 font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 font-bold'
-                    }`}
+                    className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-t-xl transition-all cursor-pointer relative ${isActive
+                      ? 'text-blue-600 font-extrabold'
+                      : 'text-slate-600 hover:text-slate-900 font-bold'
+                      }`}
                   >
                     <div className="relative">
-                      <Icon 
-                        size={22} 
-                        className={`transition-transform duration-200 ${
-                          isActive ? 'text-blue-600 scale-110' : 'text-slate-500'
-                        }`} 
+                      <Icon
+                        size={22}
+                        className={`transition-transform duration-200 ${isActive ? 'text-blue-600 scale-110' : 'text-slate-500'
+                          }`}
                       />
                       {tab.badge && (
                         <span className="absolute -top-2 -right-3 text-[9px] font-black px-1.5 py-0.2 rounded-full bg-rose-500 text-white shadow-xs">
@@ -419,7 +488,7 @@ export default function HeroSection() {
                     <span className="text-xs sm:text-[13px] tracking-tight whitespace-nowrap">
                       {tab.label}
                     </span>
-                    
+
                     {/* Active Bottom Underline Bar */}
                     {isActive && (
                       <motion.div
@@ -435,7 +504,7 @@ export default function HeroSection() {
 
           {/* Main Segmented Search Panel */}
           <div className="relative bg-white rounded-b-3xl border border-slate-200 shadow-2xl p-5 sm:p-7 pt-5 pb-10 sm:pb-12">
-            
+
             <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
               <span>Must-See Attractions · Verified Heritage · Tailored Trails</span>
               <span className="hidden sm:inline-flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -445,13 +514,13 @@ export default function HeroSection() {
 
             {/* Segmented Inputs Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 rounded-2xl border-2 border-slate-200 bg-white divide-y lg:divide-y-0 lg:divide-x-2 divide-slate-200 mb-1 sm:mb-2 shadow-xs">
-              
+
               {/* SEGMENT 1: Destination (5 Cols) */}
-              <div 
+              <div
                 ref={searchContainerRef}
                 className="lg:col-span-5 p-4 sm:p-5 hover:bg-blue-50/40 cursor-pointer transition-colors relative group z-40"
               >
-                <div 
+                <div
                   onClick={() => {
                     setShowDestDropdown(true)
                     setShowDurationDropdown(false)
@@ -476,9 +545,9 @@ export default function HeroSection() {
                         const firstWord = cleanVal.split(',')[0].trim()
                         const match = curatedDestinations.find(
                           d => d.city.toLowerCase() === cleanVal ||
-                               cleanVal.includes(d.city.toLowerCase()) ||
-                               (firstWord.length >= 3 && d.city.toLowerCase().includes(firstWord)) ||
-                               `${d.city}, ${d.state}`.toLowerCase() === cleanVal
+                            cleanVal.includes(d.city.toLowerCase()) ||
+                            (firstWord.length >= 3 && d.city.toLowerCase().includes(firstWord)) ||
+                            `${d.city}, ${d.state}`.toLowerCase() === cleanVal
                         )
                         if (match) {
                           setSelectedCity(match)
@@ -526,9 +595,8 @@ export default function HeroSection() {
                               e.stopPropagation()
                               handleSelectCity(item)
                             }}
-                            className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all group ${
-                              isSelected ? 'bg-blue-50 border border-blue-200/80' : 'hover:bg-slate-50'
-                            }`}
+                            className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all group ${isSelected ? 'bg-blue-50 border border-blue-200/80' : 'hover:bg-slate-50'
+                              }`}
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
@@ -564,11 +632,11 @@ export default function HeroSection() {
               </div>
 
               {/* SEGMENT 2: Duration & Best Season (3 Cols) */}
-              <div 
+              <div
                 ref={durationContainerRef}
-                className="lg:col-span-3 p-4 sm:p-5 hover:bg-blue-50/40 cursor-pointer transition-colors relative group z-30"
+                className={`lg:col-span-3 p-4 sm:p-5 hover:bg-blue-50/40 cursor-pointer transition-colors relative group ${showDurationDropdown ? 'z-50' : 'z-30'}`}
               >
-                <div 
+                <div
                   onClick={() => {
                     setShowDurationDropdown(!showDurationDropdown)
                     setShowDestDropdown(false)
@@ -583,13 +651,14 @@ export default function HeroSection() {
 
                   <div className="flex items-center gap-2">
                     <span
-                      className={`min-w-0 flex-1 font-display font-black text-2xl sm:text-3xl truncate ${
-                        selectedDuration.value ? 'text-slate-900' : 'text-slate-400'
-                      }`}
+                      className={`min-w-0 flex-1 font-display font-black text-2xl sm:text-3xl truncate ${selectedDuration.value ? 'text-slate-900' : 'text-slate-400'
+                        }`}
                     >
-                      {selectedDuration.value
-                        ? selectedDuration.value.replace(' (2 Days)', '').replace(' (7 Days)', '')
-                        : selectedDuration.label}
+                      {startDate && endDate
+                        ? `${formatDateForDisplay(startDate)} – ${formatDateForDisplay(endDate)}`
+                        : selectedDuration.value
+                          ? selectedDuration.value.replace(' (2 Days)', '').replace(' (7 Days)', '')
+                          : selectedDuration.label}
                     </span>
                     <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 ${showDurationDropdown ? 'rotate-180 text-blue-600' : ''}`} />
                   </div>
@@ -607,83 +676,71 @@ export default function HeroSection() {
                       className="absolute top-full left-0 w-full sm:w-[320px] mt-3 bg-white rounded-2xl border border-slate-200/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] z-50 p-2 divide-y divide-slate-100"
                     >
                       <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        Trip Duration & Pace
+                        Trip Dates
                       </div>
-                      <div className="flex flex-col space-y-1 pt-1">
-                        {durationOptions.map((opt, idx) => {
-                          return (
-                            <div
-                              key={idx}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDurationSelect(opt)
-                              }}
-                              className="p-3 rounded-xl cursor-pointer transition-all flex items-center justify-between hover:bg-slate-50"
-                            >
-                              <div>
-                                <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-                                  {opt.label}
-                                </div>
-                                <div className="text-xs text-slate-500 mt-0.5">{opt.desc}</div>
-                              </div>
-                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                                {opt.badge}
-                              </span>
-                            </div>
-                          )
-                        })}
-                        <div className="order-first p-3 rounded-xl border border-dashed border-slate-200 mt-1">
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <div className="font-bold text-slate-900 text-sm">Custom duration</div>
-                              <div className="text-xs text-slate-500 mt-0.5">Choose the number of days</div>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                min="1"
-                                max="365"
-                                value={customDurationDays}
-                                onChange={(e) => setCustomDurationDays(e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault()
-                                    const days = Number(customDurationDays)
-                                    if (Number.isInteger(days) && days >= 1 && days <= 365) {
-                                      handleDurationSelect({
-                                        value: `${days} Days`,
-                                        label: `${days} Days`,
-                                        badge: 'Custom',
-                                        desc: 'Your preferred trip length',
-                                      })
-                                    }
-                                  }
-                                }}
-                                placeholder="Days"
-                                aria-label="Custom trip duration in days"
-                                className="w-16 rounded-lg border border-slate-200 px-2 py-1.5 text-center text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                              />
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  const days = Number(customDurationDays)
-                                  if (Number.isInteger(days) && days >= 1 && days <= 365) {
-                                    handleDurationSelect({
-                                      value: `${days} Days`,
-                                      label: `${days} Days`,
-                                      badge: 'Custom',
-                                      desc: 'Your preferred trip length',
-                                    })
-                                  }
-                                }}
-                                className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-slate-700"
-                              >
-                                Apply
-                              </button>
-                            </div>
+                      <div className="p-1 pt-2">
+                        <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-bold text-slate-900">Select Dates</span>
+                            <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                              {getInclusiveDateDifference(startDate, endDate)} day{getInclusiveDateDifference(startDate, endDate) === 1 ? '' : 's'} selected
+                            </span>
                           </div>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <label className="text-[10px] font-black uppercase tracking-wide text-slate-500">
+                              Start date
+                              <input
+                                type="text"
+                                value={startDateInput}
+                                placeholder="DD/MM/YYYY"
+                                inputMode="numeric"
+                                maxLength={10}
+                                onChange={(event) => {
+                                  const value = normalizeDateInput(event.target.value)
+                                  setStartDateInput(value)
+                                  const parsedDate = parseDisplayDate(value)
+                                  if (parsedDate && parsedDate >= initialStartDate) {
+                                    handleDateChange(parsedDate, endDate < parsedDate ? parsedDate : endDate)
+                                  }
+                                }}
+                                onBlur={() => setStartDateInput(formatDateForDisplay(startDate))}
+                                onClick={(event) => event.stopPropagation()}
+                                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-xs"
+                              />
+                            </label>
+                            <label className="text-[10px] font-black uppercase tracking-wide text-slate-500">
+                              End date
+                              <input
+                                type="text"
+                                value={endDateInput}
+                                placeholder="DD/MM/YYYY"
+                                inputMode="numeric"
+                                maxLength={10}
+                                onChange={(event) => {
+                                  const value = normalizeDateInput(event.target.value)
+                                  setEndDateInput(value)
+                                  const parsedDate = parseDisplayDate(value)
+                                  if (parsedDate && parsedDate >= startDate) {
+                                    handleDateChange(startDate, parsedDate)
+                                  }
+                                }}
+                                onBlur={() => setEndDateInput(formatDateForDisplay(endDate))}
+                                onClick={(event) => event.stopPropagation()}
+                                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-xs"
+                              />
+                            </label>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowDurationDropdown(false)
+                              setShowExperienceDropdown(true)
+                            }}
+                            className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
+                          >
+                            Apply Dates
+                          </button>
                         </div>
                       </div>
                     </motion.div>
@@ -692,11 +749,11 @@ export default function HeroSection() {
               </div>
 
               {/* SEGMENT 3: Experience & Style (4 Cols - Rich Customized Dynamic Dropdown) */}
-              <div 
+              <div
                 ref={experienceContainerRef}
                 className="lg:col-span-4 p-4 sm:p-5 hover:bg-amber-50/30 cursor-pointer transition-colors relative group z-30"
               >
-                <div 
+                <div
                   onClick={() => {
                     setShowExperienceDropdown(!showExperienceDropdown)
                     setShowDestDropdown(false)
@@ -711,9 +768,8 @@ export default function HeroSection() {
 
                   <div className="flex items-center gap-2">
                     <span
-                      className={`min-w-0 flex-1 font-display font-black text-2xl sm:text-3xl truncate ${
-                        selectedExperience.id === goldenSpotExperience.id ? 'text-slate-400' : 'text-slate-900'
-                      }`}
+                      className={`min-w-0 flex-1 font-display font-black text-2xl sm:text-3xl truncate ${selectedExperience.id === goldenSpotExperience.id ? 'text-slate-400' : 'text-slate-900'
+                        }`}
                     >
                       {selectedExperience.title}
                     </span>
@@ -754,18 +810,16 @@ export default function HeroSection() {
                                 setSelectedExperience(exp)
                                 setShowExperienceDropdown(false)
                               }}
-                              className={`p-3 rounded-xl cursor-pointer transition-all flex items-start justify-between gap-3 group/item ${
-                                isSelected 
-                                  ? 'bg-amber-50/80 border-2 border-amber-300 shadow-xs' 
-                                  : 'hover:bg-slate-50 border border-transparent'
-                              }`}
+                              className={`p-3 rounded-xl cursor-pointer transition-all flex items-start justify-between gap-3 group/item ${isSelected
+                                ? 'bg-amber-50/80 border-2 border-amber-300 shadow-xs'
+                                : 'hover:bg-slate-50 border border-transparent'
+                                }`}
                             >
                               <div className="flex items-start gap-3 min-w-0">
-                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                                  isSelected 
-                                    ? 'bg-amber-500 text-white shadow-sm' 
-                                    : 'bg-slate-100 text-slate-600 group-hover/item:bg-amber-100 group-hover/item:text-amber-700'
-                                }`}>
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isSelected
+                                  ? 'bg-amber-500 text-white shadow-sm'
+                                  : 'bg-slate-100 text-slate-600 group-hover/item:bg-amber-100 group-hover/item:text-amber-700'
+                                  }`}>
                                   <IconComp size={18} />
                                 </div>
                                 <div className="min-w-0">
@@ -781,11 +835,10 @@ export default function HeroSection() {
                               </div>
 
                               <div className="flex flex-col items-end gap-1 shrink-0">
-                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                                  isSelected 
-                                    ? 'bg-amber-200 text-amber-900' 
-                                    : 'bg-slate-100 text-slate-600 group-hover/item:bg-amber-50 group-hover/item:text-amber-800'
-                                }`}>
+                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${isSelected
+                                  ? 'bg-amber-200 text-amber-900'
+                                  : 'bg-slate-100 text-slate-600 group-hover/item:bg-amber-50 group-hover/item:text-amber-800'
+                                  }`}>
                                   {exp.tag}
                                 </span>
                                 {isSelected && (
@@ -816,19 +869,19 @@ export default function HeroSection() {
                     return
                   }
                   const firstPart = queryLower.split(',')[0].trim()
-                  
+
                   // 1. Look for matching destination in curated list
                   const matchedDestination = curatedDestinations.find(
                     d => d.city.toLowerCase() === queryLower ||
-                         queryLower.includes(d.city.toLowerCase()) ||
-                         (firstPart.length >= 3 && d.city.toLowerCase().includes(firstPart)) ||
-                         d.state.toLowerCase().includes(queryLower)
+                      queryLower.includes(d.city.toLowerCase()) ||
+                      (firstPart.length >= 3 && d.city.toLowerCase().includes(firstPart)) ||
+                      d.state.toLowerCase().includes(queryLower)
                   )
-                  
+
                   const targetCity = matchedDestination ? matchedDestination.city : firstPart
                   const duration = selectedDuration.value
                   const style = selectedExperience.title
-                  navigate(`/destination?city=${encodeURIComponent(targetCity)}&duration=${encodeURIComponent(duration)}&style=${encodeURIComponent(style)}`)
+                  navigate(`/destination?city=${encodeURIComponent(targetCity)}&duration=${encodeURIComponent(duration)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&style=${encodeURIComponent(style)}`)
                 }}
                 className="inline-flex items-center justify-center gap-3 px-12 sm:px-14 py-3.5 sm:py-4 rounded-full font-black text-base sm:text-lg text-white bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-[0_12px_32px_rgba(37,99,235,0.45)] hover:shadow-[0_16px_40px_rgba(37,99,235,0.55)] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer uppercase tracking-wider"
               >
@@ -840,9 +893,9 @@ export default function HeroSection() {
           </div>
 
           {/* Quick Popular Circuit Chips (below search card) */}
-          <div className="mt-12 sm:mt-14 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="flex items-center gap-1.5 font-bold text-slate-300">
-              <TrendingUp size={14} className="text-rose-400" />
+          <div className="mt-11 sm:mt-13 flex flex-wrap items-center justify-center gap-2 text-xs relative z-20">
+            <span className="flex items-center gap-1.5 font-bold text-white/90 bg-black/35 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 shadow-xs">
+              <TrendingUp size={14} className="text-amber-400" />
               Popular Searches:
             </span>
             {trendingChips.map((chip, idx) => (
@@ -854,7 +907,7 @@ export default function HeroSection() {
                     handleSelectCity(targetCity)
                   }
                 }}
-                className="px-3.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white border border-white/15 transition-all cursor-pointer font-medium"
+                className="px-3.5 py-1.5 rounded-full bg-black/35 hover:bg-black/55 text-white/95 hover:text-white border border-white/20 hover:border-white/40 shadow-xs backdrop-blur-md transition-all cursor-pointer font-medium"
               >
                 {chip.label}
               </button>

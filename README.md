@@ -1,4 +1,4 @@
-# 🇮🇳 Yātra — India's Intelligent Travel & Tourism Ecosystem
+# 🇮🇳 Trippin' Bharat — India's Intelligent Travel & Tourism Ecosystem
 ### Smart India Hackathon (SIH 2026)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
@@ -12,9 +12,9 @@
 
 ## 📖 Overview
 
-**Yātra** is a production-grade digital operating system built for modern Indian tourism. It integrates a cinematic, authentic **Traveler Discovery & Itinerary Engine** with an enterprise-grade **Tourism Operations Admin Studio** and a robust **Express + TypeScript REST Backend**.
+**Trippin' Bharat** is a production-grade digital operating system built for modern Indian tourism. It integrates a cinematic, authentic **Traveler Discovery & Itinerary Engine** with an enterprise-grade **Tourism Operations Admin Studio** and a robust **Express + TypeScript REST Backend**.
 
-Unlike generic itinerary apps or booking scrapers, Yātra is grounded in:
+Unlike generic itinerary apps or booking scrapers, Trippin' Bharat is grounded in:
 1. **ASI-Verified Heritage Integrity**: 100% verified historical facts, monument schedules, and local landmark imagery.
 2. **Pace & Budget Optimization**: Multi-constraint Traveling Salesperson Problem (TSP) heuristic routing that factors in opening hours, crowd-free timing slots, and regional meal pairings.
 3. **Decoupled Architecture**: Clear physical separation between client-side interfaces (`frontend/`) and server-side intelligence (`backend/`).
@@ -25,7 +25,7 @@ Unlike generic itinerary apps or booking scrapers, Yātra is grounded in:
 
 ```
                                ┌─────────────────────────────┐
-                               │       Yātra Ecosystem       │
+                               │   Trippin' Bharat Ecosystem │
                                └──────────────┬──────────────┘
                                               │
                     ┌─────────────────────────┴─────────────────────────┐
@@ -111,8 +111,8 @@ SIH 2026/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/yatra-sih-2026.git
-cd yatra-sih-2026
+git clone https://github.com/SaurabhYadav730/Trippin-Bharat.git
+cd Trippin-Bharat
 ```
 
 ### 2. Install All Dependencies

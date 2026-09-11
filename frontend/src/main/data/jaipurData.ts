@@ -38,14 +38,21 @@ export const jaipurData: DestinationData = {
       styleTitle: 'Royal Forts & Palaces',
       description:
         'Majestic hill fortresses, royal ceremonial courtyards, and mirror-work palaces across the Aravalli ridges.',
-      recommendedPlaceIds: ['amber-fort', 'hawa-mahal', 'city-palace-jaipur', 'jal-mahal', 'jantar-mantar-jaipur', 'nahargarh-fort'],
+      recommendedPlaceIds: ['amber-fort', 'jaigarh-fort', 'hawa-mahal', 'city-palace-jaipur', 'nahargarh-fort'],
     },
     {
       styleId: 'crafts',
-      styleTitle: 'Johari Bazaars & Block Print',
+      styleTitle: 'Johari Bazaars & Traditional Crafts',
       description:
         'Century-old gemstone lapidary streets, Bagru block print ateliers, and blue pottery artisan workshops.',
-      recommendedPlaceIds: ['city-palace-jaipur', 'hawa-mahal', 'jantar-mantar-jaipur'],
+      recommendedPlaceIds: ['jaipur-craft-bazaar', 'blue-pottery-crafts', 'city-palace-jaipur', 'albert-hall'],
+    },
+    {
+      styleId: 'lakes',
+      styleTitle: 'Historic Lakes & Ancient Stepwells',
+      description:
+        'Atmospheric water palaces, natural spring kunds, and intricate subterranean geometric stepwells.',
+      recommendedPlaceIds: ['jal-mahal', 'panna-meena-kund', 'chand-baori', 'galtaji-temple'],
     },
   ],
   places: [
@@ -339,17 +346,355 @@ export const jaipurData: DestinationData = {
         { id: 'amber-fort', name: 'Amber Fort', category: 'attraction', distanceKm: 5.8, travelTimeMin: 20 },
       ],
     },
+    {
+      id: 'panna-meena-kund',
+      name: 'Panna Meena Ka Kund (Stepwell)',
+      hindiName: 'पन्ना मीना का कुंड',
+      tagline: '16th-century geometric stepwell with interlocking criss-cross stairways',
+      category: 'lake',
+      categoryLabel: 'Historic 16th-Century Stepwell',
+      rating: 4.8,
+      reviewCount: 14200,
+      images: [
+        '/images/places/panna-meena-kund.jpg',
+        '/images/places/amber-fort.jpg',
+      ],
+      description:
+        'A mesmerizing 16th-century architectural marvel tucked beneath Amber Fort. Built with symmetrical criss-cross zigzagging steps and octagonal recessed pavilions, it served as both a cool subterranean social gathering place and a rainwater reservoir for ancient desert travelers.',
+      coordinates: { lat: 26.985, lng: 75.8564 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+        student: 0,
+      },
+      timings: '6:00 AM – 6:00 PM (Daily)',
+      bestTimeToVisit: '7:00 AM – 9:00 AM (Golden morning light illuminates the geometric shadow play)',
+      timeRequired: '45 Mins – 1 Hour',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Constructed during the reign of Maharaja Man Singh I as a communal rainwater catchment stepwell, ingeniously engineered to stay cool during scorching Rajasthani summers.',
+        architecturalStyle: 'Classical Rajput Geometric Stepwell (Baori)',
+        architectureHighlights: [
+          'Symmetrical 8-tiered criss-cross staircase pattern descending into emerald water',
+          'Octagonal corner chhatri pavilions used historically by travelers to rest in the shade',
+          'Recessed water chambers carved to provide natural cooling micro-climates',
+        ],
+        legendsAndStories: [
+          'Local folklore claims that no person can walk down and climb back up using the exact same sequence of geometric steps.',
+        ],
+        bestPhotoSpots: ['Upper pavilion arch framing the diamond stair reflections', 'Central symmetric perspective from the northern rim'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'amber-fort', name: 'Amber Fort & Palace', category: 'attraction', distanceKm: 0.7, travelTimeMin: 8 },
+        { id: 'jaigarh-fort', name: 'Jaigarh Fort', category: 'attraction', distanceKm: 1.2, travelTimeMin: 12 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'jal-mahal', name: 'Jal Mahal (Water Palace)', category: 'attraction', distanceKm: 4.5, travelTimeMin: 14 },
+      ],
+    },
+    {
+      id: 'albert-hall',
+      name: 'Albert Hall State Central Museum',
+      hindiName: 'अल्बर्ट हॉल संग्रहालय',
+      tagline: '1887 Indo-Saracenic royal palace museum housing priceless arts & crafts',
+      category: 'heritage',
+      categoryLabel: 'State Central Museum & Gardens',
+      rating: 4.7,
+      reviewCount: 28400,
+      images: [
+        '/images/places/albert-hall.jpg',
+        '/images/places/hawa-mahal.jpg',
+      ],
+      description:
+        'The oldest museum in Rajasthan, situated in the verdant Ram Niwas Garden. Designed by Sir Samuel Swinton Jacob in 1887, this magnificent Indo-Saracenic palace museum houses an extraordinary collection of royal miniature paintings, carved ivory, metalwork, Persian carpets, and ancient weaponry.',
+      coordinates: { lat: 26.9117, lng: 75.8194 },
+      entryFee: {
+        indian: 40,
+        foreign: 300,
+        student: 20,
+      },
+      timings: '9:00 AM – 5:00 PM, Night view: 7:00 PM – 10:00 PM (Daily)',
+      bestTimeToVisit: '4:00 PM – 7:30 PM (Explore exhibits by day, then witness the spectacular golden nighttime illumination)',
+      timeRequired: '2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Founded in 1876 during the visit of the Prince of Wales, Albert Edward. It was envisioned by Maharaja Sawai Ram Singh II as an educational center to inspire local craftspeople and artisans with historic artworks.',
+        architecturalStyle: 'Neo-Indo-Saracenic Royal Museum Architecture',
+        architectureHighlights: [
+          'Intricate sandstone stone chhatris, carved bracket arches, and domed towers',
+          'Richly painted fresco murals depicting Persian, Chinese, and Mughal art motifs along corridors',
+          'Central high-ceiling gallery featuring centuries-old royal metalcrafts and carved wood shields',
+        ],
+        legendsAndStories: [
+          'Built specifically to showcase the highest tier of Indian craftsmanship to the world, becoming the blueprint for industrial and craft education in the princely state.',
+        ],
+        bestPhotoSpots: ['Flock of pigeons in Ram Niwas courtyard with Albert Hall facade in background', 'Night view from garden boulevard glowing in vibrant amber illumination'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'ram-niwas-garden', name: 'Ram Niwas Royal Garden', category: 'attraction', distanceKm: 0.1, travelTimeMin: 2 },
+        { id: 'bapu-bazaar', name: 'Bapu Bazaar Craft Market', category: 'experience', distanceKm: 0.8, travelTimeMin: 10 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'hawa-mahal', name: 'Hawa Mahal', category: 'attraction', distanceKm: 1.8, travelTimeMin: 7 },
+        { id: 'city-palace-jaipur', name: 'City Palace Jaipur', category: 'attraction', distanceKm: 2.2, travelTimeMin: 8 },
+      ],
+    },
+    {
+      id: 'jaipur-craft-bazaar',
+      name: 'Johari & Bapu Bazaar (Artisan Craft Quarter)',
+      hindiName: 'जौहरी एवं बापू बाज़ार (हस्तशिल्प बाज़ार)',
+      tagline: 'Centuries-old living bazaar for Kundan gems, block-print textiles & lac bangles',
+      category: 'craft',
+      categoryLabel: 'UNESCO Cultural Artisan Bazaar',
+      rating: 4.8,
+      reviewCount: 39500,
+      images: [
+        '/images/places/jaipur-craft-bazaar.jpg',
+        '/images/places/city-palace-jaipur.jpg',
+      ],
+      description:
+        'The pulsing cultural heart of Jaipur\'s UNESCO Walled City. Walk through historic colonnaded pink bazaars where generations of master craftspeople practice Kundan-Meenakari gemstone setting, authentic Bagru and Sanganeri wooden block printing, handcrafted camel leather Mojaris, and traditional lac bangles over live open flames.',
+      coordinates: { lat: 26.9208, lng: 75.8242 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+        student: 0,
+      },
+      timings: '10:30 AM – 8:30 PM (Daily, except Sunday evening)',
+      bestTimeToVisit: '4:00 PM – 8:00 PM (Vibrant bustling evening atmosphere, fresh street delicacies, and live artisan demonstrations)',
+      timeRequired: '2 – 3 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Planned by Maharaja Sawai Jai Singh II in 1727 with dedicated arterial streets for distinct craft guilds: Johari Bazaar for jewellers, Tripolia for iron & brass artisans, and Kishanpole for tie-and-dye bandhani weavers.',
+        architecturalStyle: 'Historic Colonnaded Walled City Streetscape',
+        architectureHighlights: [
+          'Uniform terracotta-pink colonnades and arched verandas flanking the main avenues',
+          'Heritage havelis with hand-painted fresco murals hidden above active merchant shops',
+          'Traditional Ghee Walon ka Rasta and Maniharon ka Rasta lacquer craft alleyways',
+        ],
+        legendsAndStories: [
+          'The pink wash was ordered by Maharaja Sawai Ram Singh in 1876 to welcome Queen Victoria and the Prince of Wales, symbolizing heartfelt hospitality (Atithi Devo Bhava).',
+        ],
+        bestPhotoSpots: ['Vibrant rolls of Bandhani and Leheriya dupattas hanging across pink shopfronts', 'Artisan shaping hot lac bangles over coal burners in Maniharon ka Rasta'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'hawa-mahal', name: 'Hawa Mahal', category: 'attraction', distanceKm: 0.4, travelTimeMin: 5 },
+        { id: 'city-palace-jaipur', name: 'City Palace Jaipur', category: 'attraction', distanceKm: 0.6, travelTimeMin: 7 },
+        { id: 'jantar-mantar-jaipur', name: 'Jantar Mantar', category: 'attraction', distanceKm: 0.7, travelTimeMin: 8 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'albert-hall', name: 'Albert Hall Museum', category: 'attraction', distanceKm: 1.6, travelTimeMin: 6 },
+      ],
+    },
+    {
+      id: 'blue-pottery-crafts',
+      name: 'Jaipur Blue Pottery Artisan Guild & Studio',
+      hindiName: 'जयपुर ब्लू पॉटरी शिल्प कला केंद्र',
+      tagline: 'World-renowned GI-tagged craft made from quartz powder and cobalt glazes',
+      category: 'craft',
+      categoryLabel: 'GI Heritage Craft Studio',
+      rating: 4.9,
+      reviewCount: 9200,
+      images: [
+        '/images/places/blue-pottery-crafts.jpg',
+        '/images/places/albert-hall.jpg',
+      ],
+      description:
+        'A rare traditional craft unique to Jaipur. Unlike conventional pottery, Jaipur Blue Pottery uses zero clay—it is handcrafted from a unique paste of Egyptian paste, ground quartz stone, glass, Multani mitti, and natural gum. Master potters hand-paint intricate Persian floral motifs and turquoise-blue glazes before single low-fire kiln baking.',
+      coordinates: { lat: 26.8925, lng: 75.765 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+        student: 0,
+      },
+      timings: '10:00 AM – 7:00 PM (Monday – Saturday)',
+      bestTimeToVisit: '11:00 AM – 3:00 PM (Watch live craftspeople shaping dough molds and freehand brush painting vases)',
+      timeRequired: '1.5 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Brought to Jaipur in the early 19th century by Maharaja Sawai Ram Singh II after seeing kite-flying artisans defeat opponents using glass-coated threads. Revived in the 1960s by master artisan Kripal Singh Shekhawat.',
+        architecturalStyle: 'Traditional Artisan Workshop & Pottery Kiln',
+        architectureHighlights: [
+          'Open-air sundrying courtyards lined with porcelain-smooth unfired turquoise vessels',
+          'Traditional brick kilns with wood-fired draft vents',
+          'Master brushwork stations using natural squirrel-hair brushes and mineral cobalt oxides',
+        ],
+        legendsAndStories: [
+          'Because no clay is used, the pottery never develops cracks from moisture, making it waterproof and hygienic for centuries.',
+        ],
+        bestPhotoSpots: ['Drying shelves displaying vivid turquoise, cobalt, and canary yellow ceramic plates', 'Master artisan painting fine Persian arabesque strokes on a spinning wheel'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'sanganer-crafts', name: 'Sanganer Block Print Workshops', category: 'experience', distanceKm: 4.5, travelTimeMin: 15 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'albert-hall', name: 'Albert Hall Museum', category: 'attraction', distanceKm: 6.2, travelTimeMin: 18 },
+      ],
+    },
+    {
+      id: 'galtaji-temple',
+      name: 'Galta Ji (Sacred Springs Kunds & Temple)',
+      hindiName: 'गलता जी मंदिर एवं पवित्र जल कुंड',
+      tagline: 'Perennial natural mountain spring kunds & 18th-century cliffside pavilions',
+      category: 'temple',
+      categoryLabel: 'Sacred Spring Kunds & Ancient Temple',
+      rating: 4.7,
+      reviewCount: 22100,
+      images: [
+        '/images/places/galtaji-temple.jpg',
+        '/images/places/nahargarh-fort.jpg',
+      ],
+      description:
+        'An ancient Hindu pilgrimage sanctuary nestled inside a dramatic gorge in the Aravalli hills, 10 km east of Jaipur. Perennial natural freshwater springs emerge from the sheer cliff face and cascade through seven stepped holy stone kunds (bathing pools). Famous for its pink sandstone pavilions, painted frescoes, and friendly rhesus monkey troops.',
+      coordinates: { lat: 26.9164, lng: 75.8617 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+        student: 0,
+      },
+      timings: '5:00 AM – 9:00 PM (Daily)',
+      bestTimeToVisit: 'Sunrise or late afternoon (Peaceful atmosphere, dramatic sunbeams through the mountain gorge)',
+      timeRequired: '2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Associated with Sage Galav who meditated here in antiquity. The grand pavilion complex was built in the early 18th century by Diwan Rao Kriparam, court attendant of Sawai Jai Singh II.',
+        architecturalStyle: 'Havel-Style Mountain Gorge Temple Complex',
+        architectureHighlights: [
+          'Seven sacred bathing tanks including the Upper Kund and Zanana Kund fed by eternal natural springs',
+          'Carved pink sandstone chhatris, fluted columns, and arched pavilions jutting from granite rock',
+          'Faded 18th-century ceiling frescoes illustrating scenes from the Ramayana and Krishna Leela',
+        ],
+        legendsAndStories: [
+          'The sacred spring waters flow uninterrupted regardless of whether Rajasthan experiences drought, regarded by pilgrims as a divine perennial blessing.',
+        ],
+        bestPhotoSpots: ['Upper water reservoir looking through pink scalloped arches down into the gorge', 'Sun temple ridge viewpoint overlooking the eastern plains of Jaipur'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'sun-temple-galta', name: 'Surya Mandir (Sun Temple Viewpoint)', category: 'attraction', distanceKm: 0.5, travelTimeMin: 12 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'sisodia-rani-garden', name: 'Sisodia Rani Palace Gardens', category: 'attraction', distanceKm: 3.2, travelTimeMin: 10 },
+        { id: 'hawa-mahal', name: 'Hawa Mahal', category: 'attraction', distanceKm: 6.8, travelTimeMin: 22 },
+      ],
+    },
+    {
+      id: 'jaigarh-fort',
+      name: 'Jaigarh Fort (Victory Fort & Royal Cisterns)',
+      hindiName: 'जयगढ़ किला, जयपुर',
+      tagline: 'Rugged military fort with the world\'s largest cannon & massive water reservoirs',
+      category: 'palace',
+      categoryLabel: 'Hilltop Fortress & Cannon Foundry',
+      rating: 4.8,
+      reviewCount: 29800,
+      images: [
+        '/images/places/jaigarh-fort.jpg',
+        '/images/places/amber-fort.jpg',
+      ],
+      description:
+        'Constructed in 1726 by Sawai Jai Singh II atop the Cheel ka Teela (Hill of Eagles) to safeguard Amber Palace. Houses the legendary Jaivana Cannon—the world\'s largest cannon on wheels—and an ingenious network of underground water harvesting cisterns capable of storing 6 million gallons of rainwater.',
+      coordinates: { lat: 26.9852, lng: 75.8456 },
+      entryFee: {
+        indian: 70,
+        foreign: 200,
+        student: 35,
+      },
+      timings: '9:00 AM – 5:00 PM (Daily)',
+      bestTimeToVisit: '10:00 AM – 1:00 PM (Clear panoramic views of Amber Fort, Maota Lake, and Aravalli hills)',
+      timeRequired: '2 – 2.5 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Never conquered in battle, Jaigarh was the premier royal cannon foundry of the Mughal and Rajput eras, utilizing the region\'s abundant iron ore reserves and advanced casting metallurgy.',
+        architecturalStyle: 'Pure Military Rajput Defensive Fortress',
+        architectureHighlights: [
+          'Subterranean water channels collecting rainwater from 4 kilometers of mountain catchment slopes',
+          'Jaivana Cannon with a 20-foot barrel cast on-site in a special subterranean foundry mold in 1720',
+          'Dungar Darwaza and fortified battlements offering 360-degree tactical lookouts',
+        ],
+        legendsAndStories: [
+          'Legend holds that the subterranean water chambers concealed the fabled Kachwaha royal treasury, guarded faithfully for over three centuries.',
+        ],
+        bestPhotoSpots: ['Ramparts directly looking down upon the complete footprint of Amber Fort and Maota Lake', 'Standing next to the gigantic 50-tonne wheels of the Jaivana cannon'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'amber-fort', name: 'Amber Fort & Palace', category: 'attraction', distanceKm: 0.9, travelTimeMin: 12 },
+        { id: 'panna-meena-kund', name: 'Panna Meena Ka Kund Stepwell', category: 'experience', distanceKm: 1.2, travelTimeMin: 14 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'jal-mahal', name: 'Jal Mahal (Water Palace)', category: 'attraction', distanceKm: 4.8, travelTimeMin: 15 },
+        { id: 'nahargarh-fort', name: 'Nahargarh Fort', category: 'attraction', distanceKm: 5.5, travelTimeMin: 20 },
+      ],
+    },
+    {
+      id: 'chand-baori',
+      name: 'Chand Baori Stepwell (Abhaneri)',
+      hindiName: 'चांद बावड़ी, आभानेरी',
+      tagline: 'World-famous 8th-century geometric stepwell with 3,500 symmetrical steps',
+      category: 'lake',
+      categoryLabel: 'Ancient 8th-Century Geometric Stepwell',
+      rating: 4.9,
+      reviewCount: 31200,
+      images: [
+        '/images/places/chand-baori.jpg',
+        '/images/places/panna-meena-kund.jpg',
+      ],
+      description:
+        'One of the deepest, oldest, and most visually breathtaking stepwells in the world. Built in the 8th to 9th century by King Chanda of the Nikumbha dynasty, it features 3,500 steep, narrow stone steps perfectly staggered across 13 subterranean stories descending 30 meters down to an emerald aquifer pool.',
+      coordinates: { lat: 27.0073, lng: 76.6064 },
+      entryFee: {
+        indian: 25,
+        foreign: 300,
+        student: 10,
+      },
+      timings: '7:00 AM – 5:00 PM (Daily)',
+      bestTimeToVisit: 'Morning hours (Crisp shadows define each of the 3,500 geometric triangles)',
+      timeRequired: '1.5 – 2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Constructed in arid eastern Rajasthan to harvest rainwater and provide year-round water security to the ancient settlement of Abhaneri (originally Abha Nagri, "City of Brightness").',
+        architecturalStyle: 'Classical Nikumbha-Gurjara Pratihara Stepwell Engineering',
+        architectureHighlights: [
+          'Incredible mathematical precision: 3,500 dual-diagonal steps forming inverted triangle pyramids',
+          'Northern pavilion multi-storeyed arcade adorned with carved statues of Mahishasuramardini and Ganesha',
+          'Temperature at the bottom is consistently 5 to 6 degrees Celsius cooler than the ground surface',
+        ],
+        legendsAndStories: [
+          'Ancient folklore whispered that spirits and djinn constructed the colossal 13-storey stepwell in a single night because no mortal could assemble such mathematical perfection.',
+        ],
+        bestPhotoSpots: ['Upper corner balcony capturing the dizzying geometric cascade of 13 subterranean levels', 'Northern pavilion carved stone pillars framing the deep stepwell symmetry'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'harshat-mata-temple', name: 'Harshat Mata 8th-Century Temple', category: 'attraction', distanceKm: 0.2, travelTimeMin: 3 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'abhaneri-village', name: 'Abhaneri Rural Pottery Village', category: 'experience', distanceKm: 1.5, travelTimeMin: 8 },
+      ],
+    },
   ],
   stays: [
     {
       id: 'rambagh-palace',
       name: 'Rambagh Palace Jaipur',
-      type: 'heritage_palace',
+      type: 'luxury_palace',
+      tier: 'ultra_luxury',
       typeLabel: 'Former Residence of the Maharaja of Jaipur',
       rating: 4.9,
-      reviewsCount: 3800,
-      image: '/images/places/amber-fort.jpg',
-      pricePerNight: 28000,
+      reviewsCount: 6800,
+      image: '/images/hotels/rambagh-palace.jpg',
+      pricePerNight: 48000,
       coordinates: { lat: 26.8978, lng: 75.8089 },
       amenities: ['47-Acre Mughal Gardens', 'Peacock Courtyard Dining', 'Jiva Grande Spa', 'Vintage Car Chauffeur'],
       address: 'Bhawani Singh Road, Rambagh, Jaipur, Rajasthan',
@@ -363,11 +708,12 @@ export const jaipurData: DestinationData = {
       id: 'samode-haveli',
       name: 'Samode Haveli Boutique Hotel',
       type: 'boutique_haveli',
+      tier: 'luxury',
       typeLabel: '225-Year-Old Aristocratic Townhouse',
       rating: 4.8,
-      reviewsCount: 1900,
-      image: '/images/places/city-palace-jaipur.jpg',
-      pricePerNight: 9500,
+      reviewsCount: 3400,
+      image: '/images/hotels/samode-haveli.jpg',
+      pricePerNight: 18500,
       coordinates: { lat: 26.9321, lng: 75.829 },
       amenities: ['Frescoed Courtyard Pool', 'Traditional Rajasthani Dining', 'Historic Jharokha Suites', 'Old City Walk Access'],
       address: 'Near Jorawar Singh Gate, Gangapole, Jaipur',

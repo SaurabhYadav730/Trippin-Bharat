@@ -6,12 +6,11 @@ import DestinationMarquee from '../components/DestinationMarquee'
 import TripPlannerTeaser from '../components/TripPlannerTeaser'
 import HeritageSection from '../components/HeritageSection'
 import TestimonialsSection from '../components/TestimonialsSection'
-import CTASection from '../components/CTASection'
 import Footer from '../components/Footer'
 
 export default function LandingPage() {
   useEffect(() => {
-    document.title = 'Yātra | India\'s Intelligent Travel & Tourism Ecosystem'
+    document.title = "Trippin' Bharat | Discover India"
   }, [])
 
   return (
@@ -24,7 +23,6 @@ export default function LandingPage() {
         <TripPlannerTeaser />
         <HeritageSection />
         <TestimonialsSection />
-        <CTASection />
       </main>
       <Footer />
     </div>

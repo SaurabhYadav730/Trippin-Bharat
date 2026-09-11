@@ -1,4 +1,4 @@
-# Yātra (SIH 2026) — Persistent Project Memory & Guidelines (`memory.md`)
+# Trippin' Bharat (SIH 2026) — Persistent Project Memory & Guidelines (`memory.md`)
 
 This file records all architectural decisions, design rules, and data integrity standards requested by the user. Every agent interacting with this repository MUST adhere strictly to these rules to preserve credits, prevent regressions, and maintain state-of-the-art quality.
 

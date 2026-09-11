@@ -19,22 +19,36 @@ export interface EntryFee {
 export interface Place {
   id: string
   name: string
-  category: 'monument' | 'temple' | 'nature' | 'food' | 'culture' | 'market'
+  hindiName?: string
+  tagline?: string
+  category: string
   categoryLabel?: string
-  image: string
+  image?: string
+  images?: string[]
   rating: number
+  reviewCount?: number
   reviewsCount?: number
-  price: number
+  price?: number
   description: string
   shortDescription?: string
-  timings?: PlaceTimings
-  recommendedVisitDurationMin: number
-  entryFee?: EntryFee
+  timings?: string | PlaceTimings
+  recommendedVisitDurationMin?: number
+  timeRequired?: string
+  entryFee?: {
+    indian: number
+    foreign: number
+    student?: number
+    camera?: number
+    currency?: string
+  }
   bestTime?: {
     bestTimeOfDay: 'Early Morning' | 'Morning' | 'Afternoon' | 'Evening' | 'Sunset' | 'Night'
     preferredSlots?: string[]
   }
+  bestTimeToVisit?: string | any
   coordinates?: GeoCoordinates
+  isAsiVerified?: boolean
+  journeyLens?: any
   verificationStatus?: 'verified' | 'pending' | 'needs_update' | 'draft'
 }
 

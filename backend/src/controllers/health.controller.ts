@@ -6,7 +6,7 @@ export const healthController = {
     const dbStatus = isDbConnected() ? 'connected' : 'memory_fallback'
     res.json({
       status: 'healthy',
-      platform: 'Yātra Tourism Operations API (SIH 2026)',
+      platform: "Trippin' Bharat Tourism Operations API (SIH 2026)",
       timestamp: new Date().toISOString(),
       uptimeSeconds: process.uptime(),
       services: {

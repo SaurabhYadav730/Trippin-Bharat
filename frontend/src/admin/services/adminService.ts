@@ -591,7 +591,7 @@ export const adminService = {
         id: 'int-routing',
         name: 'Route Optimization Engine (TSP + Haversine)',
         type: 'routing',
-        provider: 'Yātra Internal Planner Core',
+        provider: "Trippin' Bharat Internal Planner Core",
         status: 'connected',
         latencyMs: 12,
         uptimePercent: 100.0,
@@ -641,7 +641,7 @@ export const adminService = {
     return {
       id: 'usr-admin-01',
       name: 'Saurabh Admin',
-      email: 'saurabh@yatra.internal',
+      email: 'saurabh@trippinbharat.internal',
       role: 'Admin',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
       activeSessions: 2,

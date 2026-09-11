@@ -205,7 +205,7 @@ export default function DestinationMarquee() {
                   className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
                   loading="lazy"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/places/amber-fort.jpg'
+                    ;(e.target as HTMLElement).style.opacity = '0.7'
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -262,7 +262,7 @@ export default function DestinationMarquee() {
                   className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
                   loading="lazy"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/places/amber-fort.jpg'
+                    ;(e.target as HTMLElement).style.opacity = '0.7'
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

@@ -1,7 +1,7 @@
 {
-  "name": "yatra-platform",
+  "name": "trippin-bharat",
   "version": "1.0.0",
-  "description": "Yātra — India's Intelligent Travel & Tourism Ecosystem (Smart India Hackathon 2026)",
+  "description": "Trippin' Bharat — India's Intelligent Travel & Tourism Ecosystem (Smart India Hackathon 2026)",
   "private": true,
   "scripts": {
     "dev:frontend": "npm run dev --prefix frontend",
@@ -21,6 +21,6 @@
     "express",
     "typescript"
   ],
-  "author": "Yātra Team",
+  "author": "Trippin' Bharat Team",
   "license": "MIT"
 }

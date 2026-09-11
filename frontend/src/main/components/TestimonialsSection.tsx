@@ -9,7 +9,7 @@ const reviews = [
     destinationVisited: 'Hampi & Badami Circuit',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80&auto=format',
     rating: 5,
-    text: 'Yātra is on a whole different level compared to standard booking apps. The architectural timeline and hidden stepwell insights in Hampi allowed us to discover monuments that even local cab drivers had never heard of.',
+    text: "Trippin' Bharat is on a whole different level compared to standard booking apps. The architectural timeline and hidden stepwell insights in Hampi allowed us to discover monuments that even local cab drivers had never heard of.",
   },
   {
     name: 'Vikramaditya Rathore',
@@ -27,7 +27,7 @@ const reviews = [
     destinationVisited: 'Varanasi Ghats & Sarnath',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80&auto=format',
     rating: 5,
-    text: 'Navigating the labyrinthine alleys of Varanasi can be daunting, but Yātra’s street food hygiene badges and morning boat route guides gave us total confidence. Truly genuine Indian tourism intelligence.',
+    text: "Navigating the labyrinthine alleys of Varanasi can be daunting, but Trippin' Bharat’s street food hygiene badges and morning boat route guides gave us total confidence. Truly genuine Indian tourism intelligence.",
   },
 ]
 

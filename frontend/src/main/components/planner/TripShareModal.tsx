@@ -20,7 +20,7 @@ export default function TripShareModal({ trip, onClose }: TripShareModalProps) {
 
   const handleWhatsApp = () => {
     const text = encodeURIComponent(
-      `Check out my custom ${trip.daysCount}-day itinerary for ${trip.destinationName} on Yatra Discover India: ${shareUrl}`
+      `Check out my custom ${trip.daysCount}-day itinerary for ${trip.destinationName} on Trippin' Bharat: ${shareUrl}`
     )
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank')
   }

@@ -7,20 +7,24 @@ import SignupPage from './main/pages/SignupPage'
 import BuildTripPage from './main/pages/BuildTripPage'
 import YatraAdminApp from './admin/YatraAdminApp'
 
+import ErrorBoundary from './main/components/ErrorBoundary'
+
 export default function App() {
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/destination" element={<DestinationPage />} />
-        <Route path="/build-trip" element={<BuildTripPage />} />
-        <Route path="/plan" element={<BuildTripPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-        <Route path="/admin" element={<YatraAdminApp />} />
-        <Route path="/admin/*" element={<YatraAdminApp />} />
-      </Routes>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/destination" element={<DestinationPage />} />
+          <Route path="/build-trip" element={<BuildTripPage />} />
+          <Route path="/plan" element={<BuildTripPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/admin" element={<YatraAdminApp />} />
+          <Route path="/admin/*" element={<YatraAdminApp />} />
+        </Routes>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
 

@@ -26,7 +26,9 @@ import {
   Lock,
   Unlock,
   HelpCircle,
-  Moon
+  Moon,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import type { ItineraryDay, ItineraryStop, Place, FoodSpot, StayHotel } from '../../types/destination'
 import { destinationService } from '../../services/api'
@@ -231,6 +233,7 @@ export default function ItineraryOptimizerView({
   const [isSaved, setIsSaved] = useState(false)
   const [rightPanelTab, setRightPanelTab] = useState<'flow' | 'dining' | 'stays'>('flow')
   const [selectedStayId, setSelectedStayId] = useState<string>(stays[0]?.id || '')
+  const [showMoreDinnerSpots, setShowMoreDinnerSpots] = useState(false)
   const [startedDays, setStartedDays] = useState<Record<number, boolean>>({})
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [visitedAt, setVisitedAt] = useState<Record<string, string>>({})
@@ -861,8 +864,10 @@ export default function ItineraryOptimizerView({
                 <span>Recommended Nearby Dinner Restaurants</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {(foodSpots.length > 0 ? foodSpots : []).slice(0, 2).map((spot) => (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {(foodSpots.length > 0 ? foodSpots : [])
+                  .slice(0, showMoreDinnerSpots ? undefined : 3)
+                  .map((spot) => (
                   <div
                     key={spot.id}
                     className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-1.5"
@@ -888,8 +893,19 @@ export default function ItineraryOptimizerView({
                       </div>
                     </div>
                   </div>
-                ))}
+                  ))}
               </div>
+
+              {foodSpots.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowMoreDinnerSpots((isShown) => !isShown)}
+                  className="mx-auto flex items-center gap-1.5 rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-xs font-black text-slate-200 transition-colors hover:border-amber-400 hover:text-amber-300 cursor-pointer"
+                >
+                  <span>{showMoreDinnerSpots ? 'Show Less' : 'Show More'}</span>
+                  {showMoreDinnerSpots ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+              )}
             </div>
 
             {/* Tonight's Rest Base */}

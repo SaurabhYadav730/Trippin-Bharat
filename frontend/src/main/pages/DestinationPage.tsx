@@ -21,10 +21,8 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import DestinationHero from '../components/destination/DestinationHero'
 import PersonalizedCuration from '../components/destination/PersonalizedCuration'
-import InteractiveMapEngine from '../components/destination/InteractiveMapEngine'
 import StayItineraryConnector from '../components/destination/StayItineraryConnector'
 import SmartTripBuilderModal from '../components/destination/SmartTripBuilderModal'
-import ItineraryOptimizerView from '../components/destination/ItineraryOptimizerView'
 import PlaceDashboardModal from '../components/destination/PlaceDashboardModal'
 import SavedTripsDrawer from '../components/destination/SavedTripsDrawer'
 import { destinationService } from '../services/api'
@@ -39,11 +37,11 @@ export default function DestinationPage() {
   const styleParam = searchParams.get('style') || ''
 
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null)
-  const [activeTab, setActiveTab] = useState<'explore' | 'stay' | 'eat' | 'experiences' | 'map' | 'plan'>('explore')
+  const [activeTab, setActiveTab] = useState<'explore' | 'stay' | 'eat' | 'experiences'>('explore')
   const [selectedPlaceForModal, setSelectedPlaceForModal] = useState<Place | null>(null)
   const [showTripBuilder, setShowTripBuilder] = useState(false)
   const [showSavedTripsDrawer, setShowSavedTripsDrawer] = useState(false)
-  const [exploreCategoryFilter, setExploreCategoryFilter] = useState<'all' | 'palaces' | 'temples' | 'lakes' | 'heritage'>('all')
+  const [exploreCategoryFilter, setExploreCategoryFilter] = useState<'all' | 'palaces' | 'temples' | 'lakes' | 'crafts' | 'heritage'>('all')
   const [addedPlaceIds, setAddedPlaceIds] = useState<Set<string>>(new Set())
   const [placeToAddToItinerary, setPlaceToAddToItinerary] = useState<Place | null>(null)
 
@@ -51,7 +49,7 @@ export default function DestinationPage() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    document.title = `${cityParam} Travel & Heritage Guide | Yātra`
+    document.title = `${cityParam} Travel & Heritage Guide | Trippin' Bharat`
     // Fetch destination data dynamically for any city
     destinationService.getDestination(cityParam).then((data) => {
       setDestinationData(data)
@@ -91,8 +89,9 @@ export default function DestinationPage() {
     if (exploreCategoryFilter === 'temples') return p.category === 'temple'
     if (exploreCategoryFilter === 'lakes')
       return p.category === 'lake' || p.category === 'waterfall' || p.category === 'nature'
+    if (exploreCategoryFilter === 'crafts') return p.category === 'craft'
     if (exploreCategoryFilter === 'heritage')
-      return p.category === 'heritage' || p.category === 'craft' || p.category === 'museum'
+      return p.category === 'heritage' || p.category === 'museum'
     return true
   })
 
@@ -104,8 +103,7 @@ export default function DestinationPage() {
   }
 
   const handleBuildFromHotel = (hotel: StayHotel) => {
-    // When user chooses to build itinerary from hotel, switch to plan tab
-    scrollToTabs('plan')
+    navigate(`/build-trip?dest=${destinationData.slug}`)
   }
 
   const handleSaveTrip = (days: ItineraryDay[]) => {
@@ -144,19 +142,16 @@ export default function DestinationPage() {
                   { id: 'stay', label: '🏨 Stay', sub: 'Itinerary-Connected' },
                   { id: 'eat', label: '🍛 Eat', sub: 'Mewari Cuisine' },
                   { id: 'experiences', label: '🎨 Experiences', sub: 'Folk Dance & Art' },
-                  { id: 'map', label: '🗺️ Interactive Map', sub: 'Plotted Matrix' },
-                  { id: 'plan', label: '🧭 Plan & Optimize', sub: 'Day-by-Day Itinerary' },
                 ].map((tab) => {
                   const isSel = activeTab === tab.id
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                      className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex flex-col items-start cursor-pointer ${
-                        isSel
+                      className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex flex-col items-start cursor-pointer ${isSel
                           ? 'bg-slate-900 text-white shadow-md'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
+                        }`}
                     >
                       <span>{tab.label}</span>
                       <span className={`text-[10px] font-normal ${isSel ? 'text-slate-300' : 'text-slate-400'}`}>
@@ -166,15 +161,6 @@ export default function DestinationPage() {
                   )
                 })}
               </div>
-
-              {/* Instant "Build Trip" Button on Sticky Ribbon */}
-              <button
-                onClick={() => navigate(`/build-trip?dest=${destinationData.slug}`)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-black bg-[#E5293E] hover:bg-[#D01D32] text-white shadow-xs cursor-pointer shrink-0 transition-all uppercase tracking-wider"
-              >
-                <Sparkles size={14} />
-                <span>Build My Trip</span>
-              </button>
             </div>
           </div>
         </div>
@@ -195,22 +181,22 @@ export default function DestinationPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200">
+                <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200">
                   {[
                     { id: 'all', label: 'All Sights' },
-                    { id: 'palaces', label: 'Palaces' },
-                    { id: 'temples', label: 'Temples' },
-                    { id: 'lakes', label: 'Lakes & Ghats' },
-                    { id: 'heritage', label: 'Museums & Crafts' },
+                    { id: 'palaces', label: 'Forts & Palaces' },
+                    { id: 'lakes', label: 'Lakes & Stepwells' },
+                    { id: 'crafts', label: 'Artisan Bazaars & Crafts' },
+                    { id: 'temples', label: 'Temples & Springs' },
+                    { id: 'heritage', label: 'Museums & Heritage' },
                   ].map((filter) => (
                     <button
                       key={filter.id}
                       onClick={() => setExploreCategoryFilter(filter.id as any)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        exploreCategoryFilter === filter.id
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${exploreCategoryFilter === filter.id
                           ? 'bg-white text-slate-900 shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
-                      }`}
+                        }`}
                     >
                       {filter.label}
                     </button>
@@ -232,7 +218,11 @@ export default function DestinationPage() {
                         alt={place.name}
                         className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
                         onError={(e) => {
-                          ;(e.target as HTMLImageElement).src = '/images/places/city-palace.jpg'
+                          if (place.images[1]) {
+                            ; (e.target as HTMLImageElement).src = place.images[1]
+                          } else if (destinationData?.heroBanner) {
+                            ; (e.target as HTMLImageElement).src = destinationData.heroBanner
+                          }
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
@@ -287,13 +277,6 @@ export default function DestinationPage() {
                   </div>
                 ))}
               </div>
-
-              {/* Handpicked sights follows the full Explore Sights section */}
-              <PersonalizedCuration
-                styleTitle={matchedStyle ? matchedStyle.styleTitle : styleParam}
-                places={curatedPlaces}
-                onSelectPlace={(place) => setSelectedPlaceForModal(place)}
-              />
             </div>
           )}
 
@@ -310,10 +293,10 @@ export default function DestinationPage() {
             <div className="space-y-8">
               <div>
                 <h3 className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
-                Local Flavors & Dining in {destinationData.name}
+                  Local Flavors & Dining in {destinationData.name}
                 </h3>
                 <p className="text-sm text-slate-500 font-medium mt-1">
-                Discover nearby dining from affordable local plates to premium destination experiences, with prices shown for two people:
+                  Discover nearby dining from affordable local plates to premium destination experiences, with prices shown for two people:
                 </p>
               </div>
 
@@ -321,49 +304,49 @@ export default function DestinationPage() {
                 {[...destinationData.foodSpots]
                   .sort((a, b) => a.priceForTwo - b.priceForTwo)
                   .map((spot) => (
-                  <div
-                    key={spot.id}
-                    className="p-5 rounded-3xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row gap-5"
-                  >
-                    <div className="w-full sm:w-44 h-44 rounded-2xl overflow-hidden shrink-0 bg-slate-100">
-                      <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" />
-                    </div>
-
-                    <div className="flex-1 flex flex-col justify-between space-y-2">
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                            {spot.cuisineType}
-                          </span>
-                          <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-                            ★ {spot.rating}
-                          </span>
-                        </div>
-                        <span className="inline-block text-[10px] font-black uppercase tracking-wider text-slate-500 mt-1">
-                          {spot.priceForTwo < 800 ? 'Affordable' : spot.priceForTwo < 1800 ? 'Mid-range' : 'Premium'}
-                        </span>
-                        <h4 className="text-lg font-black text-slate-900 mt-1">{spot.name}</h4>
-                        <p className="text-xs text-slate-500 font-medium truncate">{spot.address}</p>
+                    <div
+                      key={spot.id}
+                      className="p-5 rounded-3xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row gap-5"
+                    >
+                      <div className="w-full sm:w-44 h-44 rounded-2xl overflow-hidden shrink-0 bg-slate-100">
+                        <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" />
                       </div>
 
-                      <div className="space-y-1">
-                        <div className="text-[11px] font-black uppercase text-slate-400">Must Try Delicacies:</div>
-                        <div className="flex flex-wrap gap-1">
-                          {spot.mustTryDishes.map((dish, i) => (
-                            <span key={i} className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                              {dish}
+                      <div className="flex-1 flex flex-col justify-between space-y-2">
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              {spot.cuisineType}
                             </span>
+                            <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                              ★ {spot.rating}
+                            </span>
+                          </div>
+                          <span className="inline-block text-[10px] font-black uppercase tracking-wider text-slate-500 mt-1">
+                            {spot.priceForTwo < 800 ? 'Affordable' : spot.priceForTwo < 1800 ? 'Mid-range' : 'Premium'}
+                          </span>
+                          <h4 className="text-lg font-black text-slate-900 mt-1">{spot.name}</h4>
+                          <p className="text-xs text-slate-500 font-medium truncate">{spot.address}</p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="text-[11px] font-black uppercase text-slate-400">Must Try Delicacies:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {spot.mustTryDishes.map((dish, i) => (
+                              <span key={i} className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                                {dish}
+                              </span>
                             ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
+                          <span>₹{spot.priceForTwo} for 2 people</span>
+                          <span>{spot.timings}</span>
                         </div>
                       </div>
-
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
-                        <span>₹{spot.priceForTwo} for 2 people</span>
-                        <span>{spot.timings}</span>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -423,50 +406,6 @@ export default function DestinationPage() {
               </div>
             </div>
           )}
-
-          {/* TAB 5: 🗺️ INTERACTIVE MAP (Requirement 4) */}
-          {activeTab === 'map' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
-                  Interactive Geospatial Map
-                </h3>
-                <p className="text-sm text-slate-500 font-medium mt-1">
-                  Filter by Attractions, Stays, Food, and Experiences. Click any pin to explore details, timings, and transit routes:
-                </p>
-              </div>
-
-              <InteractiveMapEngine
-                places={destinationData.places}
-                stays={destinationData.stays}
-                foodSpots={destinationData.foodSpots}
-                experiences={destinationData.experiences}
-                onSelectPlace={(place) => setSelectedPlaceForModal(place)}
-              />
-            </div>
-          )}
-
-          {/* TAB 6: 🧭 PLAN & OPTIMIZE (Requirement 8, 9, 10) */}
-          {activeTab === 'plan' && (
-            <ItineraryOptimizerView
-              initialDays={destinationData.defaultItinerary}
-              allPlaces={destinationData.places}
-              destinationName={destinationData.name}
-              foodSpots={destinationData.foodSpots}
-              stays={destinationData.stays}
-              onSelectPlace={(place) => setSelectedPlaceForModal(place)}
-              onSaveTrip={handleSaveTrip}
-              placeToAdd={placeToAddToItinerary}
-              onPlaceAddHandled={() => setPlaceToAddToItinerary(null)}
-              onPlaceAdded={(place) => {
-                setAddedPlaceIds((previousIds) => {
-                  const nextIds = new Set(previousIds)
-                  nextIds.add(place.id)
-                  return nextIds
-                })
-              }}
-            />
-          )}
         </div>
       </main>
 
@@ -480,7 +419,7 @@ export default function DestinationPage() {
         onAddToItinerary={(place) => {
           setPlaceToAddToItinerary(place)
           setSelectedPlaceForModal(null)
-          scrollToTabs('plan')
+          navigate(`/build-trip?dest=${destinationData.slug}`)
         }}
         onSelectNearby={(nearbyId) => {
           const matched = destinationData.places.find((p) => p.id === nearbyId)
@@ -499,7 +438,7 @@ export default function DestinationPage() {
           onClose={() => setShowTripBuilder(false)}
           onGenerate={() => {
             setShowTripBuilder(false)
-            scrollToTabs('plan')
+            navigate(`/build-trip?dest=${destinationData.slug}`)
           }}
         />
       )}

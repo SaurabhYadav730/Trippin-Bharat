@@ -38,14 +38,14 @@ export const shillongData: DestinationData = {
       styleTitle: 'Living Root Bridges & Waterfalls',
       description:
         'Centuries-old bio-engineered Ficus elastica bridges, thunderous Nohkalikai cascade, and rainforest river pools.',
-      recommendedPlaceIds: ['living-root-bridge', 'nohkalikai-falls', 'elephant-falls', 'umiam-lake', 'mawlynnong'],
+      recommendedPlaceIds: ['living-root-bridge', 'nohkalikai-falls', 'elephant-falls', 'mawlynnong'],
     },
     {
       styleId: 'lakes',
-      styleTitle: 'Pine Hills & Crystal Waters',
+      styleTitle: 'Crystal Waters & Pine Lakes',
       description:
-        'Serene boating on Umiam Barapani Lake, pine forest trails, and panoramic East Khasi plateau viewpoints.',
-      recommendedPlaceIds: ['umiam-lake', 'elephant-falls', 'living-root-bridge'],
+        'Crystal-clear transparent waters of Dawki Umngot river, serene boating on Umiam Barapani Lake, and mountain waterfalls.',
+      recommendedPlaceIds: ['dawki-river', 'umiam-lake', 'living-root-bridge', 'elephant-falls'],
     },
   ],
   places: [
@@ -276,6 +276,51 @@ export const shillongData: DestinationData = {
       ],
       nearbyWithin5Km: [
         { id: 'dawki-river', name: 'Dawki Umngot Transparent River', category: 'experience', distanceKm: 19.0, travelTimeMin: 45 },
+      ],
+    },
+    {
+      id: 'dawki-river',
+      name: 'Dawki & Umngot Transparent River',
+      hindiName: 'डावकी एवं उम्नगोट पारदर्शी नदी',
+      tagline: 'World-famous crystal-clear river where wooden boats appear to float on air',
+      category: 'lake',
+      categoryLabel: 'Crystal River & Boating Paradise',
+      rating: 4.9,
+      reviewCount: 31200,
+      images: [
+        '/images/places/dawki-river.jpg',
+        '/images/places/living-root-bridge.jpg',
+      ],
+      description:
+        'Flowing along the southern border of Meghalaya, the Umngot River at Dawki is renowned as India’s cleanest and most transparent river. The emerald-green water is so exceptionally clear that pebble riverbeds and fish 20 feet deep are visible with the naked eye, giving country rowboats the surreal illusion of levitating in mid-air.',
+      coordinates: { lat: 25.1878, lng: 92.0194 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+      },
+      timings: '6:00 AM – 5:30 PM (Boating operates sunrise to sunset)',
+      bestTimeToVisit: '9:00 AM – 1:00 PM (Direct overhead sunlight illuminates the river bottom with glass-like clarity)',
+      timeRequired: '2 – 3 Hours',
+      isAsiVerified: false,
+      journeyLens: {
+        history:
+          'Acts as a natural international boundary between the Jaintia Hills of India and the plains of Bangladesh. Spanned by the British-era Dawki Suspension Bridge constructed in 1932.',
+        architecturalStyle: 'Natural Limestone River Gorge & British Cable Suspension Engineering',
+        architectureHighlights: [
+          'High-altitude 1932 Dawki Suspension Bridge offering bird’s-eye views of country boats floating beneath',
+          'Shnongpdeng village upstream offering camping, river cliff-jumping, and snorkeling in transparent natural pools',
+        ],
+        legendsAndStories: [
+          'The clarity of the water is preserved by local Khasi and Jaintia village councils who enforce strict bans on chemical detergents and plastic along the entire river watershed.',
+        ],
+        bestPhotoSpots: ['From the riverbank capturing a wooden boat casting a distinct shadow on the stone river bottom 15 feet below'],
+        audioGuideAvailable: false,
+      },
+      nearbyWithin1Km: [
+        { id: 'dawki-bridge', name: 'Dawki Historic Suspension Bridge', category: 'attraction', distanceKm: 0.2, travelTimeMin: 3 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'mawlynnong', name: 'Mawlynnong Cleanest Village', category: 'attraction', distanceKm: 18.5, travelTimeMin: 40 },
       ],
     },
   ],

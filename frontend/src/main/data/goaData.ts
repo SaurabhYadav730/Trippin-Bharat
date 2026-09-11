@@ -37,13 +37,13 @@ export const goaData: DestinationData = {
       styleId: 'beaches-water-sports',
       styleTitle: 'Sun-Kissed Beaches & Water Sports',
       description: 'Crescent sandy beaches, ocean kayak trails, and sunset viewpoints.',
-      recommendedPlaceIds: ['palolem-beach', 'aguada-fort', 'bom-jesus-basilica'],
+      recommendedPlaceIds: ['palolem-beach', 'aguada-fort', 'dudhsagar-falls'],
     },
     {
       styleId: 'portuguese-quarters',
-      styleTitle: 'Portuguese Quarters & Churches',
-      description: 'Baroque UNESCO basilicas, colorful colonial Latin streets, and fort ramparts.',
-      recommendedPlaceIds: ['bom-jesus-basilica', 'aguada-fort', 'dudhsagar-falls'],
+      styleTitle: 'Portuguese Latin Quarters & Crafts',
+      description: 'Hand-painted Azulejo ceramic tile studios, colorful colonial Latin streets, and Baroque UNESCO basilicas.',
+      recommendedPlaceIds: ['fontainhas-heritage-quarter', 'bom-jesus-basilica', 'se-cathedral', 'aguada-fort'],
     },
   ],
   places: [
@@ -293,6 +293,52 @@ export const goaData: DestinationData = {
         { id: 'bom-jesus-basilica', name: 'Basilica of Bom Jesus', category: 'attraction', distanceKm: 0.3, travelTimeMin: 4 },
       ],
       nearbyWithin5Km: [],
+    },
+    {
+      id: 'fontainhas-heritage-quarter',
+      name: 'Fontainhas Latin Quarter & Azulejos Craft Atelier',
+      hindiName: 'फोंटेनहास लैटिन क्वार्टर एवं अजुलेजोस शिल्प',
+      tagline: 'Vibrant 18th-century Portuguese quarter with hand-painted ceramic tile studios',
+      category: 'craft',
+      categoryLabel: 'UNESCO Latin Quarter & Tile Crafts',
+      rating: 4.8,
+      reviewCount: 21400,
+      images: [
+        '/images/places/fontainhas-goa.jpg',
+        '/images/places/bom-jesus-basilica.jpg',
+      ],
+      description:
+        'Panaji\'s enchanting heritage Latin Quarter, founded in the late 18th century at the foot of Altinho hill. Stroll through narrow cobblestone lanes lined with brightly painted Portuguese villas in ochre, indigo, and terracotta, projecting wooden balconies, and traditional studios where artisans hand-glaze classical Goan Azulejo ceramic tiles.',
+      coordinates: { lat: 15.4989, lng: 73.8315 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+      },
+      timings: 'Open 24 Hours (Studios & bakeries: 9:30 AM – 7:30 PM)',
+      bestTimeToVisit: '8:00 AM – 10:30 AM or 4:00 PM – 6:30 PM (Soft tropical sunlight on pastel facades and calm pedestrian streets)',
+      timeRequired: '2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Developed after the bubonic plague prompted the Portuguese viceroy to move the capital from Old Goa to Panaji in 1843. Local laws strictly mandated that residents repaint their houses annually after each monsoon season.',
+        architecturalStyle: 'Portuguese Colonial Vernacular Architecture',
+        architectureHighlights: [
+          'Hand-glazed Azulejos blue-and-white tile plaques marking family names and house numbers',
+          'Rua 31 de Janeiro: Picturesque street featuring oyster-shell window panes (Carepas) instead of glass',
+          'Chapel of St. Sebastian built in 1888 housing an unblemished life-sized Christ crucifix',
+        ],
+        legendsAndStories: [
+          'Named "Fontainhas" (Little Fountains) after the natural spring of Phoenix (Fonte Phoenix) that provided pure drinking water to the colony.',
+        ],
+        bestPhotoSpots: ['Crossing the footbridge into Rua 31 de Janeiro framing pastel yellow and cobalt blue facades'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'our-lady-immaculate', name: 'Our Lady of the Immaculate Conception Church', category: 'attraction', distanceKm: 0.6, travelTimeMin: 7 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'bom-jesus-basilica', name: 'Basilica of Bom Jesus (Old Goa)', category: 'attraction', distanceKm: 8.5, travelTimeMin: 18 },
+      ],
     },
   ],
   stays: [

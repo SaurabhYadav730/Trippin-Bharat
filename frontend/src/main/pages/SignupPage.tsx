@@ -132,11 +132,13 @@ export default function SignupPage() {
         <div className="relative z-10 flex flex-col justify-between h-full p-10 w-full">
           <div className="flex items-center justify-between">
             <a href="/" className="flex items-center gap-2.5 group">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-red-600 via-rose-600 to-red-500 flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-200">
-                <Compass size={22} strokeWidth={2.5} />
-              </div>
+              <img
+                src="/logo.jpg"
+                alt="Trippin' Bharat"
+                className="w-11 h-11 rounded-full object-cover shadow-lg group-hover:scale-105 transition-transform duration-200 border-2 border-white/20"
+              />
               <div>
-                <div className="font-black text-2xl tracking-tight text-white leading-none">Yātra</div>
+                <div className="font-black text-2xl tracking-tight text-white leading-none">Trippin' Bharat</div>
                 <div className="text-[10px] font-bold tracking-widest text-slate-300 uppercase mt-0.5">Discover India</div>
               </div>
             </a>
@@ -171,11 +173,13 @@ export default function SignupPage() {
       <div className="flex-1 flex flex-col justify-center px-6 py-10 sm:px-10 bg-slate-50 overflow-y-auto">
 
         <div className="lg:hidden flex items-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white">
-            <Compass size={20} strokeWidth={2.5} />
-          </div>
+          <img
+            src="/logo.jpg"
+            alt="Trippin' Bharat"
+            className="w-10 h-10 rounded-full object-cover shadow-md border border-slate-200"
+          />
           <div>
-            <div className="font-black text-xl text-slate-900">Yātra</div>
+            <div className="font-black text-xl text-slate-900">Trippin' Bharat</div>
             <div className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">Discover India</div>
           </div>
         </div>
@@ -193,7 +197,7 @@ export default function SignupPage() {
               </span>
             </h1>
             <p className="text-slate-500 text-sm mt-2 font-medium">
-              Create your free Yātra account in seconds.
+              Create your free Trippin' Bharat account in seconds.
             </p>
           </div>
 
@@ -344,7 +348,7 @@ export default function SignupPage() {
                 {agreed && <Check size={9} className="text-white" strokeWidth={3.5} />}
               </button>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                I agree to Yātra's{' '}
+                I agree to Trippin' Bharat's{' '}
                 <a href="#" className="text-red-600 hover:underline font-bold">Terms of Service</a>
                 {' '}and{' '}
                 <a href="#" className="text-red-600 hover:underline font-bold">Privacy Policy</a>.

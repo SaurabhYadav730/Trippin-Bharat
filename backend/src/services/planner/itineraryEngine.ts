@@ -36,7 +36,7 @@ export const itineraryEngine = {
           timeSlot: timeSlotNames[s] || `Slot ${s + 1}`,
           place,
           durationMin: place.recommendedVisitDurationMin || 90,
-          notes: `Optimized for ${place.bestTime?.bestTimeOfDay || 'visit'}. Allow 15 mins travel time.`,
+          notes: `Optimized for ${typeof place.bestTimeToVisit === 'object' ? (place.bestTimeToVisit as any)?.bestTimeOfDay : (place.bestTimeToVisit || 'morning visit')}. Allow 15 mins travel time.`,
         })
 
         scheduledCount++

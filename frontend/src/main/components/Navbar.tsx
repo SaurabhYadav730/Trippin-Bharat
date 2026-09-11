@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  Compass, 
-  Menu, 
-  X, 
-  User, 
-  BookmarkCheck, 
+import {
+  Compass,
+  Menu,
+  X,
+  User,
+  BookmarkCheck,
   Heart,
   ShieldCheck,
   Globe2,
@@ -48,24 +48,25 @@ export default function Navbar({ onOpenSavedTrips }: NavbarProps = {}) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-      <nav 
-        className={`w-full transition-all duration-200 ${
-          scrolled 
-            ? 'bg-slate-950/95 backdrop-blur-md shadow-lg border-b border-slate-800 py-3' 
-            : 'bg-gradient-to-b from-black/80 via-black/40 to-transparent py-4'
-        }`}
+      <nav
+        className={`w-full transition-all duration-200 ${scrolled
+          ? 'bg-slate-950/95 backdrop-blur-md shadow-lg border-b border-slate-800 py-3'
+          : 'bg-gradient-to-b from-black/80 via-black/40 to-transparent py-4'
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-          
+
           {/* Brand Logo */}
           <a href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-red via-crimson-600 to-rose-500 flex items-center justify-center text-white shadow-primary-glow group-hover:scale-105 transition-transform duration-200">
-              <Compass size={22} className="animate-spin-slow" strokeWidth={2.5} />
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Trippin' Bharat Logo"
+              className="w-10 h-10 rounded-full object-cover shadow-md group-hover:scale-105 transition-transform duration-200 border-2 border-white/20"
+            />
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
                 <span className="font-display text-2xl font-black tracking-tight text-white leading-none">
-                  Yātra
+                  Trippin' Bharat
                 </span>
                 <span className="w-2 h-2 rounded-full bg-brand-red"></span>
               </div>
@@ -75,17 +76,17 @@ export default function Navbar({ onOpenSavedTrips }: NavbarProps = {}) {
             </div>
           </a>
 
-          {/* MMT Style Top Right Action Area */}
+          {/* Tourism Discovery Action Area */}
           <div className="hidden lg:flex items-center gap-6">
-            
-            {/* Yātra Admin Operations OS Link */}
+
+            {/* Trippin' Bharat Admin Operations OS Link */}
             <a href="/admin" className="flex items-center gap-2 text-left cursor-pointer group">
               <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-emerald-400 group-hover:bg-white/20 transition-colors">
                 <ShieldCheck size={18} />
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">
-                  Yātra Admin
+                  Trippin' Bharat Admin
                 </span>
                 <span className="text-[10px] text-slate-400">
                   Operations OS

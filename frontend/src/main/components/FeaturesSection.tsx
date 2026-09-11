@@ -85,7 +85,7 @@ export default function FeaturesSection() {
             Everything You Need to Experience the True Soul of India
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-3 leading-relaxed">
-            Unlike fragmented booking engines or static travel blogs, Yātra interconnects discovery, planning, verified stays, heritage stories, and local experiences into one intelligent companion.
+            Unlike fragmented booking engines or static travel blogs, Trippin' Bharat interconnects discovery, planning, verified stays, heritage stories, and local experiences into one intelligent companion.
           </p>
         </div>
 

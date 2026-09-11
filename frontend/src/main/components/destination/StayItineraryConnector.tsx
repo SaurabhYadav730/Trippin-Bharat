@@ -10,7 +10,14 @@ import {
   Check,
   Navigation,
   Car,
-  ChevronDown
+  ChevronDown,
+  X,
+  Phone,
+  UserRound,
+  Images,
+  Play,
+  Star,
+  ShieldCheck
 } from 'lucide-react'
 import type { StayHotel } from '../../types/destination'
 
@@ -39,7 +46,7 @@ export default function StayItineraryConnector({
   const [expandedTier, setExpandedTier] = useState<string>('budget')
   const tierSections = [
     { id: 'budget', label: 'Affordable Stays', description: 'Value-focused stays near your itinerary' },
-    { id: 'comfort', label: 'Comfort Stays', description: 'Extra space, amenities, and local character' },
+    { id: 'comfort', label: 'Medium Range Stays', description: 'Extra space, amenities, and local character' },
     { id: 'luxury', label: 'Luxury Stays', description: 'Premium rooms, service, and destination experiences' },
     { id: 'ultra_luxury', label: 'Ultra-Luxury Stays', description: 'Exclusive villas, palace service, and signature hospitality' },
   ] as const
@@ -231,39 +238,77 @@ export default function StayItineraryConnector({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-xl bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 z-10 space-y-4"
+              className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-slate-200 z-10"
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black text-slate-900">{activeModalHotel.name}</h3>
-                <button
-                  onClick={() => setActiveModalHotel(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200"
-                >
-                  ✕
-                </button>
+              <div className="relative h-56 overflow-hidden rounded-t-3xl">
+                <img src={activeModalHotel.image} alt={activeModalHotel.name} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
+                <div className="absolute bottom-5 left-6 right-6 flex items-end justify-between gap-4 text-white">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">{activeModalHotel.typeLabel || 'Stay profile'}</p>
+                    <h3 className="mt-1 text-2xl font-black">{activeModalHotel.name}</h3>
+                  </div>
+                  <button
+                    onClick={() => setActiveModalHotel(null)}
+                    className="rounded-xl bg-white/20 p-2 backdrop-blur hover:bg-white/35"
+                    aria-label="Close stay details"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
-              <div className="h-48 rounded-2xl overflow-hidden">
-                <img src={activeModalHotel.image} alt="" className="w-full h-full object-cover" />
+              <div className="space-y-6 p-6">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-2xl bg-blue-50 p-3"><div className="text-[10px] font-black uppercase text-blue-600">From</div><div className="mt-1 text-lg font-black text-slate-900">₹{activeModalHotel.pricePerNight.toLocaleString()}<span className="text-[10px] font-medium text-slate-500"> / night</span></div></div>
+                <div className="rounded-2xl bg-amber-50 p-3"><div className="text-[10px] font-black uppercase text-amber-600">Rating</div><div className="mt-1 flex items-center gap-1 text-lg font-black text-slate-900"><Star size={15} className="fill-amber-400 text-amber-400" /> {activeModalHotel.rating.toFixed(1)}</div></div>
+                <div className="rounded-2xl bg-emerald-50 p-3"><div className="text-[10px] font-black uppercase text-emerald-600">Reviews</div><div className="mt-1 text-lg font-black text-slate-900">{(activeModalHotel.reviewsCount || 0).toLocaleString()}</div></div>
+                <div className="rounded-2xl bg-violet-50 p-3"><div className="text-[10px] font-black uppercase text-violet-600">Category</div><div className="mt-1 text-sm font-black text-slate-900">{activeModalHotel.tier === 'ultra_luxury' ? 'Ultra Luxury' : activeModalHotel.tier === 'luxury' ? 'Luxury' : activeModalHotel.tier === 'comfort' ? 'Medium Range' : 'Low Cost'}</div></div>
               </div>
 
-              <div className="space-y-2">
-                <div className="text-xs font-black uppercase tracking-wider text-purple-700">
-                  Full Proximity Breakdown to Udaipur Sights:
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 p-4">
+                  <h4 className="mb-3 text-sm font-black text-slate-900">Stay information</h4>
+                  <div className="space-y-3 text-xs text-slate-600">
+                    <div className="flex gap-2"><MapPin size={16} className="shrink-0 text-purple-600" /><span>{activeModalHotel.address}</span></div>
+                    <div className="flex gap-2"><Phone size={16} className="shrink-0 text-purple-600" /><span>{activeModalHotel.contactPhone || '+91 1800 123 4567'}</span></div>
+                    <div className="flex gap-2"><UserRound size={16} className="shrink-0 text-purple-600" /><span>Owner: {activeModalHotel.ownerName || 'Verified property management'}</span></div>
+                  </div>
                 </div>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {activeModalHotel.distanceToItineraryHighlights.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 rounded-xl bg-slate-50 text-xs font-semibold"
-                    >
-                      <span className="font-bold text-slate-900">{item.placeName}</span>
-                      <span className="text-slate-600">
-                        {item.distanceKm} km · {item.drivingTimeMin} min drive
-                      </span>
-                    </div>
-                  ))}
+                <div className="rounded-2xl border border-slate-200 p-4">
+                  <h4 className="mb-3 text-sm font-black text-slate-900">Amenities</h4>
+                  <div className="flex flex-wrap gap-2">{activeModalHotel.amenities.map((amenity) => <span key={amenity} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">{amenity}</span>)}</div>
                 </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <h4 className="mb-2 text-sm font-black text-slate-900">About this stay</h4>
+                  <p className="text-xs leading-5 text-slate-600">{activeModalHotel.description || `${activeModalHotel.name} offers a comfortable base for exploring the destination, with convenient access to local landmarks and attentive hospitality.`}</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <h4 className="mb-2 text-sm font-black text-slate-900">Stay details</h4>
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-600">
+                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Check-in</span><strong className="text-slate-800">2:00 PM</strong></div>
+                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Check-out</span><strong className="text-slate-800">11:00 AM</strong></div>
+                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Capacity</span><strong className="text-slate-800">2 guests / room</strong></div>
+                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Booking</span><strong className="text-slate-800">Instant confirmation</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <div className="mb-3 flex items-center gap-2"><ShieldCheck size={18} className="text-emerald-600" /><h4 className="text-sm font-black text-slate-900">Guest policies & nearby sights</h4></div>
+                <div className="grid gap-4 sm:grid-cols-2 text-xs text-slate-600">
+                  <div className="space-y-2"><p>• Government ID required at check-in</p><p>• Cancellation available up to 24 hours before arrival</p><p>• Quiet hours: 10:00 PM – 7:00 AM</p></div>
+                  <div className="space-y-2">{activeModalHotel.distanceToItineraryHighlights.slice(0, 3).map((item) => <p key={item.placeId}><strong className="text-slate-800">{item.placeName}</strong> · {item.distanceKm} km · {item.drivingTimeMin} min drive</p>)}</div>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center gap-2"><Images size={18} className="text-purple-600" /><h4 className="text-sm font-black text-slate-900">Gallery</h4></div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{Array.from(new Set([activeModalHotel.image, ...(activeModalHotel.galleryImages || [])])).slice(0, 8).map((image, index) => <img key={`${image}-${index}`} src={image} alt={`${activeModalHotel.name} gallery ${index + 1}`} className="h-28 w-full rounded-xl object-cover" onError={(e) => { e.currentTarget.src = activeModalHotel.image }} />)}</div>
+                {(activeModalHotel.galleryVideos || []).length > 0 ? <div className="mt-4 grid gap-3 sm:grid-cols-2">{activeModalHotel.galleryVideos?.map((video) => <iframe key={video} className="h-48 w-full rounded-xl border border-slate-200" src={video} title={`${activeModalHotel.name} video`} allowFullScreen />)}</div> : <div className="mt-4 flex items-center gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-500"><Play size={15} className="text-purple-600" /> Video tours will appear here when provided by the stay.</div>}
               </div>
 
               <button
@@ -275,6 +320,7 @@ export default function StayItineraryConnector({
               >
                 Set as Trip Base & Generate Itinerary
               </button>
+              </div>
             </motion.div>
           </div>
         )}

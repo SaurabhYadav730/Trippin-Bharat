@@ -55,7 +55,7 @@ export default function TripExportModal({ trip, onClose }: TripExportModalProps)
           {/* Header Banner */}
           <div className="p-6 rounded-2xl bg-slate-900 text-white space-y-2 print:bg-white print:text-black print:p-0 print:border-b print:pb-3">
             <div className="text-xs font-black uppercase tracking-widest text-amber-400 print:text-slate-600">
-              YATRA · DISCOVER INDIA VERIFIED ITINERARY
+              TRIPPIN' BHARAT · DISCOVER INDIA VERIFIED ITINERARY
             </div>
             <h2 className="text-2xl sm:text-3xl font-black font-display">
               {trip.destinationName} — {trip.daysCount} Days Travel Guide

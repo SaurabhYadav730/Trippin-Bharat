@@ -751,7 +751,7 @@ export async function seedDatabase(force = false) {
         caption: 'Monolithic City Palace complex illuminated by morning sun.',
         source: 'Archaeological Survey of India & Mewar Tourism Archives',
         license: 'ASI Verified',
-        attribution: 'Official Verified Yātra Photographic Registry',
+        attribution: "Official Verified Trippin' Bharat Photographic Registry",
         uploadedBy: 'Operations Admin',
       },
       {
@@ -759,9 +759,9 @@ export async function seedDatabase(force = false) {
         url: '/images/places/lake-pichola.jpg',
         altText: 'Lake Pichola calm waters reflecting the sunset and Jag Mandir',
         caption: 'Golden hour reflection over tranquil Lake Pichola.',
-        source: 'Yātra Field Documentation Team',
+        source: "Trippin' Bharat Field Documentation Team",
         license: 'Direct Ownership',
-        attribution: 'Yātra Field Expedition 2026',
+        attribution: "Trippin' Bharat Field Expedition 2026",
         uploadedBy: 'Operations Admin',
       },
     ])

@@ -24,7 +24,7 @@ export default function CTASection() {
             </h2>
 
             <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-8">
-              Join over 1.2 million travelers planning authentic, culturally rich, and budget-optimized journeys with Yātra's intelligent companion platform.
+              Join over 1.2 million travelers planning authentic, culturally rich, and budget-optimized journeys with Trippin' Bharat's intelligent companion platform.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">

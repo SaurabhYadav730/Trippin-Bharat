@@ -38,14 +38,21 @@ export const varanasiData: DestinationData = {
       styleTitle: 'Sacred Ghats & Ganga Aarti',
       description:
         'Atmospheric riverfront rituals, evening brass lamp ceremonies, and early morning Subah-e-Banaras meditation.',
-      recommendedPlaceIds: ['dashashwamedh-ghat', 'assi-ghat', 'manikarnika-ghat', 'kashi-vishwanath'],
+      recommendedPlaceIds: ['dashashwamedh-ghat', 'assi-ghat', 'manikarnika-ghat', 'tulsi-ghat', 'kashi-vishwanath'],
     },
     {
       styleId: 'temples',
       styleTitle: 'Ancient Temples & Sarnath',
       description:
-        'The newly restored Kashi Vishwanath Dham corridor, historic Buddhist stupas at Sarnath, and deer parks.',
+        'The newly restored Kashi Vishwanath Dham corridor, historic Buddhist stupas at Sarnath, and sacred spiritual shrines.',
       recommendedPlaceIds: ['kashi-vishwanath', 'sarnath', 'dashashwamedh-ghat'],
+    },
+    {
+      styleId: 'crafts',
+      styleTitle: 'Banarasi Silk Weaving & Bazaars',
+      description:
+        'Centuries-old handloom Jacquard looms, pure gold Zari brocades, and Thatheri brass metal craft quarter.',
+      recommendedPlaceIds: ['chowk-silk-weavers', 'kashi-vishwanath', 'ramnagar-fort'],
     },
   ],
   places: [
@@ -324,6 +331,97 @@ export const varanasiData: DestinationData = {
       nearbyWithin1Km: [],
       nearbyWithin5Km: [
         { id: 'assi-ghat', name: 'Assi Ghat', category: 'attraction', distanceKm: 4.2, travelTimeMin: 18 },
+      ],
+    },
+    {
+      id: 'chowk-silk-weavers',
+      name: 'Chowk & Thatheri Bazaar (Banarasi Silk & Metal Craft Guild)',
+      hindiName: 'चौक एवं ठठेरी बाज़ार (बनारसी रेशम व धातु शिल्प)',
+      tagline: 'Centuries-old living weaver quarter for pure silk Brocade & Zari handlooms',
+      category: 'craft',
+      categoryLabel: 'GI Heritage Silk & Craft Guild',
+      rating: 4.8,
+      reviewCount: 24600,
+      images: [
+        '/images/places/silk-looms-varanasi.jpg',
+        '/images/places/kashi-vishwanath.jpg',
+      ],
+      description:
+        'The historic artisanal nerve center of Varanasi, hidden within the labyrinthine alleyways behind Godowlia. Witness fourth-generation master weavers operating traditional pit looms and Jacquard cards to weave world-famous GI-tagged Banarasi silk sarees with real gold and silver Zari threads, alongside the UNESCO-recognized Thatheri guild hand-hammering brass utensils.',
+      coordinates: { lat: 25.3125, lng: 83.0089 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+      },
+      timings: '11:00 AM – 8:30 PM (Closed Sundays)',
+      bestTimeToVisit: '2:00 PM – 6:00 PM (Lively rhythmic clicking of wooden handlooms echoing through the galis)',
+      timeRequired: '1.5 – 2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Mentioned in ancient Buddhist Jataka tales and Megasthenes\' chronicles. The craft reached imperial heights during the Mughal era when Persian floral motifs merged with Hindu sacred designs.',
+        architecturalStyle: 'Medieval Labyrinthine Alleyways with Courtyard Weaver Looms',
+        architectureHighlights: [
+          'Wooden floor-level pit looms with rhythmic wooden shuttle pedals',
+          'Traditional punched punch-card Jacquard harnesses engineering intricate motifs like Paisley (Kalka) and floral jaal',
+        ],
+        legendsAndStories: [
+          'A single royal Banarasi bridal saree can take up to six months of painstaking dual-weaver coordination.',
+        ],
+        bestPhotoSpots: ['Master artisan guiding shimmering gold thread through the loom reeds'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'kashi-vishwanath', name: 'Kashi Vishwanath Corridor', category: 'attraction', distanceKm: 0.4, travelTimeMin: 5 },
+        { id: 'dashashwamedh-ghat', name: 'Dashashwamedh Ghat', category: 'attraction', distanceKm: 0.7, travelTimeMin: 8 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'assi-ghat', name: 'Assi Ghat', category: 'attraction', distanceKm: 2.5, travelTimeMin: 14 },
+      ],
+    },
+    {
+      id: 'tulsi-ghat',
+      name: 'Tulsi Ghat & Ancient Wrestling Akhada',
+      hindiName: 'तुलसी घाट एवं प्राचीन अखाड़ा',
+      tagline: 'Where Tulsidas wrote the Ramcharitmanas, featuring 500-year-old mud wrestling',
+      category: 'lake',
+      categoryLabel: 'Literary Heritage & River Steps',
+      rating: 4.7,
+      reviewCount: 18200,
+      images: [
+        '/images/places/assi-ghat.jpg',
+        '/images/places/dashashwamedh-ghat.jpg',
+      ],
+      description:
+        'Named after the saint-poet Goswami Tulsidas who lived here and composed the epic Ramcharitmanas in the 16th century. Home to the historic Tulsi Akhada where traditional pehlwans (wrestlers) practice mud wrestling following millennia-old Vedic physical discipline.',
+      coordinates: { lat: 25.2925, lng: 83.0036 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+      },
+      timings: 'Open 24 Hours (Akhada practice: 6:00 AM – 8:00 AM)',
+      bestTimeToVisit: '6:30 AM (Sunrise river tranquility and traditional morning wrestling practice)',
+      timeRequired: '1 Hour',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Tulsidas founded the famous Krishna Leela stage here in the 16th century, which continues as India\'s oldest surviving outdoor theatrical pageant.',
+        architecturalStyle: 'Classical Stone River Stairs & Heritage Matha',
+        architectureHighlights: [
+          'Sanctum preserving Tulsidas\' original wooden sandals (Khadau) and carved Hanuman idol',
+          'Traditional red-earth earthen wrestling pit prepared with turmeric, rose water, and mustard oil',
+        ],
+        legendsAndStories: [
+          'Folklore recounts that Lord Rama and Lakshmana personally appeared to Tulsidas on these stone steps.',
+        ],
+        bestPhotoSpots: ['Morning reflection of wooden river boats against the ancient akhada brick walls'],
+        audioGuideAvailable: false,
+      },
+      nearbyWithin1Km: [
+        { id: 'assi-ghat', name: 'Assi Ghat', category: 'attraction', distanceKm: 0.4, travelTimeMin: 5 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'dashashwamedh-ghat', name: 'Dashashwamedh Ghat', category: 'attraction', distanceKm: 2.1, travelTimeMin: 12 },
       ],
     },
   ],

@@ -43,8 +43,7 @@ export const udaipurData: DestinationData = {
         'bagore-ki-haveli',
         'vintage-car-museum',
         'jagdish-temple',
-        'sajjangarh',
-        'lake-pichola',
+        'hathi-pol-bazaar',
         'shilpgram',
       ],
     },
@@ -52,7 +51,7 @@ export const udaipurData: DestinationData = {
       styleId: 'romantic',
       styleTitle: 'Romantic Lakes & Sunsets',
       description: 'Lakeside palaces, sunset cruises, rooftop candlelight dinners and ghat views.',
-      recommendedPlaceIds: ['lake-pichola', 'city-palace', 'bagore-ki-haveli', 'sajjangarh', 'fatehsagar'],
+      recommendedPlaceIds: ['lake-pichola', 'fatehsagar', 'saheliyon-ki-bari', 'city-palace', 'sajjangarh'],
     },
   ],
   places: [
@@ -398,6 +397,146 @@ export const udaipurData: DestinationData = {
       nearbyWithin5Km: [
         { id: 'fatehsagar', name: 'Fateh Sagar Lake', category: 'attraction', distanceKm: 2.8, travelTimeMin: 10 },
         { id: 'city-palace', name: 'City Palace Complex', category: 'attraction', distanceKm: 4.8, travelTimeMin: 20 },
+      ],
+    },
+    {
+      id: 'saheliyon-ki-bari',
+      name: 'Saheliyon Ki Bari (Garden of the Maidens)',
+      hindiName: 'सहेलियों की बाड़ी, उदयपुर',
+      tagline: '18th-century royal botanical oasis with natural pressure fountains & lotus pools',
+      category: 'lake',
+      categoryLabel: 'Royal Lotus Pools & Fountains',
+      rating: 4.7,
+      reviewCount: 26800,
+      images: [
+        '/images/places/saheliyon-ki-bari.jpg',
+        '/images/places/lake-pichola.jpg',
+      ],
+      description:
+        'Built by Maharana Sangram Singh II in the early 18th century for a royal retinue of 48 maidens. Famed for its four marble elephant fountains, carved bird kiosks emitting natural rain sound effects, and vibrant multi-tiered lotus ponds engineered to operate solely on natural water head pressure without electricity.',
+      coordinates: { lat: 24.6033, lng: 73.6845 },
+      entryFee: {
+        indian: 20,
+        foreign: 100,
+        student: 10,
+      },
+      timings: '9:00 AM – 7:00 PM (Daily)',
+      bestTimeToVisit: '9:30 AM – 11:30 AM (Gentle morning sunlight on the blossoming lotus pools)',
+      timeRequired: '1 – 1.5 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Maharana Sangram Singh II personally designed this garden as a secluded, green haven for the queen and her royal attendants, away from the court politics of the City Palace.',
+        architecturalStyle: 'High Rajput-Mughal Hydro-Engineering Garden Architecture',
+        architectureHighlights: [
+          'Four monolithic marble elephants spouting fine water mists over circular marble pools',
+          'Sawan Bhadon fountains producing the authentic acoustic sensation of mountain monsoon downpours',
+          'Central black marble pavilion surrounded by sunken fragrant rose parterres',
+        ],
+        legendsAndStories: [
+          'The fountains run entirely on gravitational siphon hydraulics fed by an underground conduit directly connected to Fateh Sagar Lake.',
+        ],
+        bestPhotoSpots: ['Framing the white marble pavilion through the elephant fountain spray'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'fatehsagar', name: 'Fateh Sagar Lake', category: 'attraction', distanceKm: 0.9, travelTimeMin: 10 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'city-palace', name: 'City Palace Complex', category: 'attraction', distanceKm: 3.2, travelTimeMin: 12 },
+        { id: 'shilpgram', name: 'Shilpgram Craft Village', category: 'attraction', distanceKm: 3.5, travelTimeMin: 14 },
+      ],
+    },
+    {
+      id: 'fatehsagar',
+      name: 'Fateh Sagar Lake & Nehru Garden',
+      hindiName: 'फतेह सागर झील एवं नेहरू पार्क',
+      tagline: 'Panoramic freshwater lake with island gardens & solar observatory',
+      category: 'lake',
+      categoryLabel: 'Freshwater Alpine Lake & Island Park',
+      rating: 4.8,
+      reviewCount: 38900,
+      images: [
+        '/images/places/fateh-sagar-lake.jpg',
+        '/images/places/lake-pichola.jpg',
+      ],
+      description:
+        'A pear-shaped mountain lake north of Lake Pichola, reconstructed in 1888 by Maharana Fateh Singh. Connected by a canal network, it contains three picturesque islands, the largest housing the lush Nehru Park with pyramid fountains, accessible by speedboats and shikaras.',
+      coordinates: { lat: 24.6026, lng: 73.6738 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+      },
+      timings: 'Open 24 Hours (Boating: 8:00 AM – 6:30 PM)',
+      bestTimeToVisit: '4:30 PM – 7:00 PM (Breezy sunset stroll along Mumbai Market promenade)',
+      timeRequired: '1.5 – 2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Originally constructed by Maharana Jai Singh in 1687, the dam was rebuilt after a catastrophic flood by Maharana Fateh Singh, with the foundation stone laid by Prince Arthur, Duke of Connaught.',
+        architecturalStyle: 'Stone Embankment Dam with Island Pleasure Pavilions',
+        architectureHighlights: [
+          'Nehru Park: Lily-shaped fountains and lush flora in the middle of azure waters',
+          'Udaipur Solar Observatory: Asia\'s finest solar research facility located on an islet inside the lake for optimal atmospheric clarity',
+        ],
+        legendsAndStories: [
+          'Because the surrounding water absorbs air turbulence, the island observatory captures some of the sharpest telescopic images of solar flares in the world.',
+        ],
+        bestPhotoSpots: ['Sunset boat wake framing the Aravalli mountain ridges surrounding the lake'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'saheliyon-ki-bari', name: 'Saheliyon Ki Bari', category: 'attraction', distanceKm: 0.9, travelTimeMin: 10 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'shilpgram', name: 'Shilpgram Craft Village', category: 'attraction', distanceKm: 2.4, travelTimeMin: 8 },
+        { id: 'city-palace', name: 'City Palace Complex', category: 'attraction', distanceKm: 3.8, travelTimeMin: 14 },
+      ],
+    },
+    {
+      id: 'hathi-pol-bazaar',
+      name: 'Hathi Pol & Bada Bazaar (Pichwai & Miniature Art Quarter)',
+      hindiName: 'हाथी पोल एवं बड़ा बाज़ार (चित्रकला व हस्तशिल्प बाज़ार)',
+      tagline: 'Living artisan street for handmade Mewar miniature paintings & Bandhani textiles',
+      category: 'craft',
+      categoryLabel: 'Artisan Art & Craft Guild',
+      rating: 4.7,
+      reviewCount: 19400,
+      images: [
+        '/images/places/shilpgram.jpg',
+        '/images/places/bagore-ki-haveli.jpg',
+      ],
+      description:
+        'The historic creative quarter of Udaipur. Renowned as the birthplace of Mewari miniature paintings, Pichwai cloth temple scrolls, and hand-embroidered Rajasthani Mojaris. Watch master artists delicately paint with brushes made from a single squirrel hair using natural pigments extracted from lapis lazuli and gold dust.',
+      coordinates: { lat: 24.5855, lng: 73.6872 },
+      entryFee: {
+        indian: 0,
+        foreign: 0,
+      },
+      timings: '10:00 AM – 8:30 PM (Closed Sunday evenings)',
+      bestTimeToVisit: '3:00 PM – 7:00 PM (Lively bazaar atmosphere, master artists working inside heritage havelis)',
+      timeRequired: '1.5 – 2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Historically the ceremonial gate where royal elephants entered Udaipur. Over centuries, master artisans under royal Mewar patronage established workshops here.',
+        architecturalStyle: 'Traditional Colonnaded Old Bazaar Alleyways',
+        architectureHighlights: [
+          'Centuries-old stone havelis with hand-carved jharokhas sheltering family-run artist ateliers',
+          'Intricate wooden block print and leather craft workshops in neighboring Mochiwada',
+        ],
+        legendsAndStories: [
+          'Authentic Pichwai paintings depict Lord Shrinathji in 24 distinct daily moods (Bhavas), requiring up to 3 months of meticulous brushwork per scroll.',
+        ],
+        bestPhotoSpots: ['Artisan atelier displaying colorful natural mineral stone pigments and gold leaf sheets'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [
+        { id: 'jagdish-temple', name: 'Jagdish Temple', category: 'attraction', distanceKm: 0.6, travelTimeMin: 7 },
+        { id: 'city-palace', name: 'City Palace Complex', category: 'attraction', distanceKm: 0.9, travelTimeMin: 10 },
+      ],
+      nearbyWithin5Km: [
+        { id: 'saheliyon-ki-bari', name: 'Saheliyon Ki Bari', category: 'attraction', distanceKm: 2.1, travelTimeMin: 9 },
       ],
     },
   ],
@@ -829,6 +968,21 @@ export function generateDynamicDestination(cityQuery: string, styleQuery?: strin
   const cleanName = cityQuery.trim().replace(/^,+|,+$/g, '').trim() || 'India'
   const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
+  // Return authentic curated destination if available
+  if (destinationsDatabase[slug]) {
+    return destinationsDatabase[slug]
+  }
+  const matched = Object.values(destinationsDatabase).find(
+    (d) =>
+      d.slug === slug ||
+      d.name.toLowerCase() === cleanName.toLowerCase() ||
+      slug.includes(d.slug) ||
+      d.slug.includes(slug)
+  )
+  if (matched) {
+    return matched
+  }
+
   const defaultStyle = styleQuery || 'Heritage & Cultural Trail'
 
   return {
@@ -838,12 +992,11 @@ export function generateDynamicDestination(cityQuery: string, styleQuery?: strin
     state: 'India',
     tagline: `Cultural Heritage · Iconic Landmarks · Curated ${cleanName} Guide`,
     shortBio: `Explore the vibrant streets, historic monuments, authentic regional flavours, and treasured local experiences of ${cleanName}. Specially curated with verified entry timings, safety ratings, and route optimization.`,
-    heroBanner: '/images/places/amber-fort.jpg',
+    heroBanner: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80',
     heroGallery: [
-      '/images/places/amber-fort.jpg',
-      '/images/places/hawa-mahal.jpg',
-      '/images/places/taj-mahal.jpg',
-      '/images/places/city-palace.jpg',
+      'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1603228254119-e6aefd8432c2?auto=format&fit=crop&w=800&q=80',
     ],
     bestSeason: 'October – March',
     recommendedDays: '3–4 Days',
@@ -880,7 +1033,7 @@ export function generateDynamicDestination(cityQuery: string, styleQuery?: strin
         categoryLabel: 'Historic Landmark',
         rating: 4.8,
         reviewCount: 12400,
-        images: ['/images/places/amber-fort.jpg'],
+        images: ['https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'],
         description: `The grand architectural centrepiece of ${cleanName}, boasting centuries of regional craftsmanship, imposing stone facades, and vibrant living history.`,
         coordinates: { lat: 26.9124, lng: 75.7873 },
         entryFee: {
@@ -920,7 +1073,7 @@ export function generateDynamicDestination(cityQuery: string, styleQuery?: strin
         categoryLabel: 'Heritage Complex',
         rating: 4.7,
         reviewCount: 9800,
-        images: ['/images/places/hawa-mahal.jpg'],
+        images: ['https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80'],
         description: `A tranquil heritage garden complex displaying regional costumes, armory, royal decrees, and traditional paintings of ${cleanName}.`,
         coordinates: { lat: 26.9200, lng: 75.8000 },
         entryFee: {
@@ -954,7 +1107,7 @@ export function generateDynamicDestination(cityQuery: string, styleQuery?: strin
         categoryLabel: 'Artisan Mohalla',
         rating: 4.8,
         reviewCount: 15600,
-        images: ['/images/places/city-palace.jpg'],
+        images: ['https://images.unsplash.com/photo-1603228254119-e6aefd8432c2?auto=format&fit=crop&w=800&q=80'],
         description: `The pulsating heart of ${cleanName}, filled with brass metal smiths, traditional textile weavers, spice merchants, and famous regional street food vendors.`,
         coordinates: { lat: 26.9250, lng: 75.8200 },
         entryFee: {
@@ -985,7 +1138,7 @@ export function generateDynamicDestination(cityQuery: string, styleQuery?: strin
         tier: 'luxury',
         rating: 4.8,
         pricePerNight: 8500,
-        image: '/images/places/amber-fort.jpg',
+        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
         amenities: ['Courtyard Dining', 'Swimming Pool', 'Cultural Evenings', 'Free High-Speed Wi-Fi'],
         address: `Heritage Quarter, ${cleanName}`,
         distanceToItineraryHighlights: [

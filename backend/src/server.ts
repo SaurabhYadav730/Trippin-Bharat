@@ -56,7 +56,7 @@ app.use('/api/admin', adminRoutes)
 // Root API Explorer
 app.get('/', (_req, res) => {
   res.json({
-    name: 'Yātra Tourism Intelligence & Operations API',
+    name: "Trippin' Bharat Tourism Intelligence & Operations API",
     version: '2.0.0',
     edition: 'Smart India Hackathon (SIH 2026)',
     status: 'online',
@@ -101,7 +101,7 @@ async function startServer() {
   }
 
   app.listen(PORT, () => {
-    console.log(`🚀 Yātra MERN Backend API running on port ${PORT} [http://localhost:${PORT}]`)
+    console.log(`🚀 Trippin' Bharat MERN Backend API running on port ${PORT} [http://localhost:${PORT}]`)
   })
 }
 

@@ -60,6 +60,11 @@ export interface StayHotel {
   coordinates?: GeoCoordinates
   amenities: string[]
   address: string
+  contactPhone?: string
+  ownerName?: string
+  description?: string
+  galleryImages?: string[]
+  galleryVideos?: string[]
   distanceToItineraryHighlights: {
     placeId: string
     placeName: string

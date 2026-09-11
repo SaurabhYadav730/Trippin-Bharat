@@ -545,18 +545,25 @@ export const seedDestinations: Record<string, DestinationData> = {
   },
 }
 
-// Pre-populate other popular Indian destinations
+import { curatedDestinations } from './curatedDestinations.js'
+
+// Populate authentic curated destinations
+for (const [slug, data] of Object.entries(curatedDestinations)) {
+  seedDestinations[slug] = data
+}
+
+// Regional / city aliases
+if (curatedDestinations['munnar']) {
+  seedDestinations['kerala'] = curatedDestinations['munnar']
+  seedDestinations['alleppey'] = curatedDestinations['munnar']
+}
+if (curatedDestinations['ladakh']) {
+  seedDestinations['leh'] = curatedDestinations['ladakh']
+  seedDestinations['nubra'] = curatedDestinations['ladakh']
+}
+
+// Pre-populate other custom Indian destinations dynamically only if not curated
 const popularCities = [
-  { slug: 'jaipur', name: 'Jaipur', state: 'Rajasthan', tagline: 'The Pink City · 24+ Forts & Palaces' },
-  { slug: 'varanasi', name: 'Varanasi', state: 'Uttar Pradesh', tagline: 'Eternal Ghats & Sacred Kashi Vishwanath' },
-  { slug: 'shillong', name: 'Shillong', state: 'Meghalaya', tagline: 'Living Root Bridges & Crystal Waterfalls' },
-  { slug: 'hampi', name: 'Hampi', state: 'Karnataka', tagline: 'UNESCO Vijayanagara Boulder Ruins & Temples' },
-  { slug: 'agra', name: 'Agra', state: 'Uttar Pradesh', tagline: 'Taj Mahal & Mughal Architectural Marvels' },
-  { slug: 'goa', name: 'Goa', state: 'Goa', tagline: 'Sun-Kissed Golden Coast & Latin Heritage Quarters' },
-  { slug: 'munnar', name: 'Munnar', state: 'Kerala', tagline: 'Emerald Tea Plantations & Misty Anamudi Peaks' },
-  { slug: 'ladakh', name: 'Ladakh', state: 'Ladakh', tagline: 'High Himalayan Monasteries, Passes & Pangong' },
-  { slug: 'leh', name: 'Leh', state: 'Ladakh', tagline: 'High Himalayan Monasteries, Passes & Pangong' },
-  { slug: 'rishikesh', name: 'Rishikesh', state: 'Uttarakhand', tagline: 'Yoga Capital, River Rapids & Ganga Aarti' },
   { slug: 'delhi', name: 'Delhi', state: 'Delhi NCR', tagline: 'Mughal Monuments, Colonial Grandeur & Spice Bazaars' },
 ]
 
@@ -568,3 +575,4 @@ for (const city of popularCities) {
     seedDestinations[city.slug] = dyn
   }
 }
+

@@ -46,7 +46,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-[11px] font-mono uppercase tracking-wider text-[#6B7280] font-bold">
-                OPERATIONAL DASHBOARD &bull; YĀTRA ADMIN
+                OPERATIONAL DASHBOARD &bull; TRIPPIN' BHARAT ADMIN
               </span>
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-[#1F2937]">

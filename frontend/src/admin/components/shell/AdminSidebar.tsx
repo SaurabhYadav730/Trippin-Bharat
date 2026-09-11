@@ -143,12 +143,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <div className="h-14 px-4 border-b border-[#E5E7EB] flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C96F3B] to-[#B55F2D] flex items-center justify-center text-white font-extrabold text-sm shadow-sm">
-              या
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Trippin' Bharat"
+              className="w-8 h-8 rounded-full object-cover shadow-sm border border-[#E5E7EB]"
+            />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm tracking-tight text-[#1F2937]">YĀTRA</span>
+                <span className="font-extrabold text-sm tracking-tight text-[#1F2937]">TRIPPIN' BHARAT</span>
                 <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#FDF6F0] text-[#C96F3B] border border-[#F3DFD1]">
                   ADMIN
                 </span>
@@ -159,9 +161,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         )}
 
         {isCollapsed && (
-          <div className="mx-auto w-8 h-8 rounded-xl bg-gradient-to-br from-[#C96F3B] to-[#B55F2D] flex items-center justify-center text-white font-extrabold text-sm shadow-sm">
-            या
-          </div>
+          <img
+            src="/logo.jpg"
+            alt="Trippin' Bharat"
+            className="mx-auto w-8 h-8 rounded-full object-cover shadow-sm border border-[#E5E7EB]"
+          />
         )}
 
         <button

@@ -1,6 +1,6 @@
-# Yātra — Backend Services & Tourism Intelligence API
+# Trippin' Bharat — Backend Services & Tourism Intelligence API
 
-RESTful API backend for **Yātra (Smart India Hackathon 2026)**, built with **Node.js, Express, and TypeScript**.
+RESTful API backend for **Trippin' Bharat (Smart India Hackathon 2026)**, built with **Node.js, Express, and TypeScript**.
 
 ---
 

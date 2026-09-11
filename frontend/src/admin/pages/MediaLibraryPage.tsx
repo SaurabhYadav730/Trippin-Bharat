@@ -27,7 +27,7 @@ export const MediaLibraryPage: React.FC = () => {
   const [newUrl, setNewUrl] = useState('/images/places/city-palace.jpg')
   const [newAlt, setNewAlt] = useState('')
   const [newLicense, setNewLicense] = useState<'ASI Verified' | 'Editorial License' | 'Public Domain'>('ASI Verified')
-  const [newAttribution, setNewAttribution] = useState('Yātra Verified Heritage Documentation')
+  const [newAttribution, setNewAttribution] = useState("Trippin' Bharat Verified Heritage Documentation")
 
   const mediaList = mediaService.getAllMedia(search, licenseFilter)
 

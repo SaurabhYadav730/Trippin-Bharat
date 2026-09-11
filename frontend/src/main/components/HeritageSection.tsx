@@ -99,7 +99,7 @@ export default function HeritageSection() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   loading="lazy"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/places/amber-fort.jpg'
+                    ;(e.target as HTMLElement).style.opacity = '0.7'
                   }}
                 />
                 

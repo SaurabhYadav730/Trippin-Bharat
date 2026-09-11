@@ -30,7 +30,7 @@ export default function YatraAdminApp() {
   const [environment, setEnvironment] = useState<'PRODUCTION' | 'DEVELOPMENT'>('PRODUCTION')
 
   useEffect(() => {
-    document.title = 'Yātra Admin — Tourism Operations OS'
+    document.title = "Trippin' Bharat Admin — Tourism Operations OS"
   }, [])
 
   const handleSelectSection = (sec: string) => {

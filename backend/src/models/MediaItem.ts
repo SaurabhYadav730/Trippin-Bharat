@@ -28,7 +28,7 @@ const MediaItemSchema = new Schema<IMediaItem>(
     url: { type: String, required: true },
     altText: { type: String, default: '' },
     caption: { type: String, default: '' },
-    source: { type: String, default: 'Yātra Verified Asset' },
+    source: { type: String, default: "Trippin' Bharat Verified Asset" },
     license: {
       type: String,
       enum: ['Public Domain', 'Creative Commons', 'Direct Ownership', 'Editorial License', 'ASI Verified'],

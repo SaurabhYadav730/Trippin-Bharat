@@ -42,7 +42,16 @@ import {
   Utensils,
   ExternalLink,
   Coffee,
-  Navigation
+  Navigation,
+  LocateFixed,
+  Maximize2,
+  Minimize2,
+  Route,
+  X,
+  Phone,
+  UserRound,
+  Images,
+  Play
 } from 'lucide-react'
 import { destinationService } from '../services/api'
 import { destinationsDatabase } from '../data/destinationData'
@@ -103,6 +112,43 @@ function getTrafficLabel(departureMinute: number): string {
   if ((hour >= 7 && hour < 10) || (hour >= 17 && hour < 21)) return 'Heavy traffic'
   if (hour >= 10 && hour < 16) return 'Moderate traffic'
   return 'Light traffic'
+}
+
+function formatBestTimeToVisit(val: unknown): string {
+  if (typeof val === 'string') {
+    return val.split('(')[0].trim()
+  }
+
+  if (val && typeof val === 'object' && val !== null && 'bestTimeOfDay' in (val as Record<string, unknown>)) {
+    return String((val as Record<string, unknown>).bestTimeOfDay).split('(')[0].trim()
+  }
+  return ''
+}
+
+const artisanShopProfiles = [
+  ['Heritage Craft Collective', 'Hand-block prints, local textiles, and artisan souvenirs', 'https://images.unsplash.com/photo-1601924928374-0b9c9c8f6b4c?w=800&q=85'],
+  ['Royal Handicraft Studio', 'Handmade decor, miniature art, and traditional crafts', 'https://images.unsplash.com/photo-1577083288073-40892c0860a4?w=800&q=85'],
+  ['The Artisan Bazaar', 'Locally made jewellery, pottery, and woven keepsakes', 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=800&q=85'],
+] as const
+
+const localArtifactShops = [
+  { name: 'Heritage Craft Collective', description: 'Hand-block prints, local textiles, and artisan souvenirs', image: 'https://images.unsplash.com/photo-1601924928374-0b9c9c8f6b4c?w=800&q=85', specialty: 'Textiles & prints', openingMinutes: 600, closingMinutes: 1140 },
+  { name: 'Royal Handicraft Studio', description: 'Handmade decor, miniature art, and traditional crafts', image: 'https://images.unsplash.com/photo-1577083288073-40892c0860a4?w=800&q=85', specialty: 'Miniature art', openingMinutes: 630, closingMinutes: 1110 },
+  { name: 'The Artisan Bazaar', description: 'Locally made jewellery, pottery, and woven keepsakes', image: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=800&q=85', specialty: 'Jewellery & pottery', openingMinutes: 660, closingMinutes: 1200 },
+  { name: 'Local Loom House', description: 'Small-batch woven goods made by regional artisan families', image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=800&q=85', specialty: 'Handwoven goods', openingMinutes: 600, closingMinutes: 1080 },
+  { name: 'The Craft Trail Store', description: 'Curated woodwork, souvenirs, and sustainable gifts', image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800&q=85', specialty: 'Woodcraft & gifts', openingMinutes: 690, closingMinutes: 1170 },
+] as const
+
+const localExperiences = [
+  { name: 'Morning Flower Market Walk', description: 'Join local vendors as they set up fresh marigold garlands, spices, and seasonal produce before the lanes get busy.', image: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=85', category: 'Everyday local life', openingMinutes: 390, closingMinutes: 570, durationMin: 60 },
+  { name: 'Block Printing with a Local Maker', description: 'Learn the rhythm of hand-carved wooden blocks and print your own small textile with a neighbourhood artisan family.', image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=85', category: 'Hands-on craft', openingMinutes: 600, closingMinutes: 1020, durationMin: 90 },
+  { name: 'Courtyard Folk Music Evening', description: 'A relaxed live folk performance with local musicians, storytelling, and seasonal snacks in an intimate heritage courtyard.', image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=85', category: 'Current event', openingMinutes: 1080, closingMinutes: 1260, durationMin: 90 },
+  { name: 'Neighbourhood Chai & Street Breakfast', description: 'Share chai and a regional breakfast at a family-run stall while discovering the unhurried morning routine of the old city.', image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=800&q=85', category: 'Local food ritual', openingMinutes: 450, closingMinutes: 690, durationMin: 60 },
+  { name: 'Open-Air Craft & Storytelling Fair', description: 'A pop-up evening fair featuring local makers, folk stories, small performances, and responsibly sourced souvenirs.', image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800&q=85', category: 'Happening today', openingMinutes: 960, closingMinutes: 1260, durationMin: 90 },
+] as const
+
+function formatOpeningWindow(openingMinutes: number, closingMinutes: number): string {
+  return `${formatScheduleTime(openingMinutes)} – ${formatScheduleTime(closingMinutes)}`
 }
 
 function recalculateStopSchedule(
@@ -207,6 +253,10 @@ export default function BuildTripPage() {
   ])
   const [selectedPlaces, setSelectedPlaces] = useState<Record<string, TravelPriority>>({})
   const [selectedHotelId, setSelectedHotelId] = useState<string>('')
+  const [openHotelTier, setOpenHotelTier] = useState<'budget' | 'comfort' | 'luxury' | 'ultra_luxury' | null>(null)
+  const [selectedHotelDetails, setSelectedHotelDetails] = useState<StayHotel | null>(null)
+  const [expandedArtisanStopId, setExpandedArtisanStopId] = useState<string | null>(null)
+  const [expandedLocalSpecialityStopId, setExpandedLocalSpecialityStopId] = useState<string | null>(null)
   const [includeFoodStops, setIncludeFoodStops] = useState<boolean>(true)
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all')
 
@@ -214,8 +264,25 @@ export default function BuildTripPage() {
   const [plannedTrip, setPlannedTrip] = useState<PlannedTrip | null>(null)
   const [activeDayIdx, setActiveDayIdx] = useState<number>(0)
   const [selectedMapPinId, setSelectedMapPinId] = useState<string | null>(null)
+  const [isSharingLocation, setIsSharingLocation] = useState(false)
+  const [liveLocation, setLiveLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationShareMessage, setLocationShareMessage] = useState<string | null>(null)
+  const locationWatchIdRef = useRef<number | null>(null)
+  const liveLocationMarkerRef = useRef<L.Marker | null>(null)
   const [isMapExpanded, setIsMapExpanded] = useState(false)
   const [isSatelliteView, setIsSatelliteView] = useState(false)
+  const [showMoreDinnerSpots, setShowMoreDinnerSpots] = useState(false)
+  const [showMoreLunchSpots, setShowMoreLunchSpots] = useState(false)
+  const [showMoreLocalArtifactShops, setShowMoreLocalArtifactShops] = useState(false)
+  const [showMoreLocalExperiences, setShowMoreLocalExperiences] = useState(false)
+  const [selectedArtifactShop, setSelectedArtifactShop] = useState<((typeof localArtifactShops)[number] & {
+    coordinates: { lat: number; lng: number }
+    nearestRouteDistanceKm: number
+    available: boolean
+  }) | null>(null)
+  const [selectedArtifactImage, setSelectedArtifactImage] = useState<string | null>(null)
+  const [showSOSPanel, setShowSOSPanel] = useState(false)
+  const [showGuidePanel, setShowGuidePanel] = useState(false)
   const [routePreference, setRoutePreference] = useState<'shortest' | 'less_traffic'>('less_traffic')
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
@@ -228,6 +295,11 @@ export default function BuildTripPage() {
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [visitedAt, setVisitedAt] = useState<Record<string, string>>({})
   const [mobileTab, setMobileTab] = useState<'itinerary' | 'map'>('itinerary')
+
+  // ── Automatically scroll to top on step or mode changes ──
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }, [currentStep, isGenerated])
 
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 1000)
@@ -392,6 +464,7 @@ export default function BuildTripPage() {
     { slug: 'munnar', name: 'Munnar & Kerala', state: 'Kerala', image: '/images/places/munnar-tea-hills.jpg', tag: 'Tea Hills & Backwaters' },
     { slug: 'rishikesh', name: 'Rishikesh', state: 'Uttarakhand', image: '/images/places/ram-jhula.jpg', tag: 'Yoga Capital & River Ganges' },
     { slug: 'ladakh', name: 'Ladakh', state: 'Ladakh', image: '/images/places/pangong-tso.jpg', tag: 'High-Altitude Lakes & Monasteries' },
+    { slug: 'shillong', name: 'Shillong', state: 'Meghalaya', image: '/images/places/living-root-bridge.jpg', tag: 'Living Root Bridges & Waterfalls' },
   ]
 
   const filteredDestinations = useMemo(() => {
@@ -851,13 +924,126 @@ export default function BuildTripPage() {
       coordinates: place.coordinates,
       notes: place.tagline || (place.bestTimeToVisit ? `Best Visited: ${place.bestTimeToVisit}` : ''),
       image: place.images[0],
-      explanation: place.bestTimeToVisit ? `Scheduled to align with optimal visit window (${place.bestTimeToVisit.split('(')[0].trim()}).` : undefined,
+      explanation: place.bestTimeToVisit ? `Scheduled to align with optimal visit window (${formatBestTimeToVisit(place.bestTimeToVisit)}).` : undefined,
     }
 
     const updatedDays = [...plannedTrip.days]
     updatedDays[activeDayIdx].stops.push(newStop)
     setPlannedTrip({ ...plannedTrip, days: updatedDays })
     setShowAddPlaceModal(false)
+  }
+
+  const handleAddArtifactShopToCurrentDay = (shop: (typeof localArtifactShops)[number] & { coordinates: { lat: number; lng: number }; nearestRouteDistanceKm: number }) => {
+    if (!plannedTrip) return
+    const currentDay = plannedTrip.days[activeDayIdx]
+    if (!currentDay) return
+
+    const shopStop: PlannedStop = {
+      id: `artisan-${Date.now()}`,
+      placeId: `artisan-${shop.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      placeName: shop.name,
+      category: 'shopping',
+      categoryLabel: 'Local artifacts',
+      timeSlot: '',
+      startTime: '',
+      endTime: '',
+      durationMin: 45,
+      travelFromPrevMin: 0,
+      distanceFromPrevKm: 0,
+      estimatedCost: 0,
+      priority: 'optional',
+      locked: false,
+      coordinates: shop.coordinates,
+      notes: `${shop.specialty}. Open ${formatOpeningWindow(shop.openingMinutes, shop.closingMinutes)}.`,
+      image: shop.image,
+      explanation: `Placed near your existing route (${shop.nearestRouteDistanceKm ?? 0} km away) and within the shop's opening hours.`,
+    }
+
+    const baseCoord = plannedTrip.selectedHotel?.coordinates || currentDay.stops[0]?.coordinates || { lat: 26.9124, lng: 75.7873 }
+    const dayEnd = parseScheduleTime(dailyTime.endTime)
+    const candidates = currentDay.stops.map((_, index) => index).concat(currentDay.stops.length)
+      .map((insertAt) => {
+        const stops = [...currentDay.stops]
+        stops.splice(insertAt, 0, shopStop)
+        const schedule = recalculateStopSchedule(stops, dailyTime.startTime, baseCoord, transportMode)
+        const scheduledShop = schedule.stops[insertAt]
+        const isOpen = parseScheduleTime(scheduledShop.startTime) >= shop.openingMinutes &&
+          parseScheduleTime(scheduledShop.endTime) <= shop.closingMinutes &&
+          parseScheduleTime(scheduledShop.endTime) <= dayEnd
+        return { insertAt, schedule, isOpen }
+      })
+      .filter((candidate) => candidate.isOpen)
+      .sort((a, b) => a.schedule.totalDistanceKm - b.schedule.totalDistanceKm)[0]
+
+    if (!candidates) {
+      setSaveToast(`${shop.name} cannot fit this day's route during its opening hours.`)
+      window.setTimeout(() => setSaveToast(null), 3500)
+      return
+    }
+
+    const updatedDays = [...plannedTrip.days]
+    updatedDays[activeDayIdx] = {
+      ...currentDay,
+      stops: candidates.schedule.stops,
+      totalDistanceKm: candidates.schedule.totalDistanceKm,
+      totalTravelTimeMin: candidates.schedule.totalTravelTimeMin,
+      totalSightseeingTimeMin: candidates.schedule.stops.reduce((total, stop) => total + stop.durationMin, 0),
+    }
+    setPlannedTrip({ ...plannedTrip, days: updatedDays })
+    setSelectedArtifactShop(null)
+    setSaveToast(`${shop.name} added to Day ${activeDayIdx + 1} in the shortest feasible sequence.`)
+    window.setTimeout(() => setSaveToast(null), 3500)
+  }
+
+  const handleAddLocalExperienceToCurrentDay = (experience: (typeof localExperiences)[number] & { coordinates: { lat: number; lng: number }; nearestRouteDistanceKm: number }) => {
+    if (!plannedTrip) return
+    const currentDay = plannedTrip.days[activeDayIdx]
+    if (!currentDay) return
+    if (currentDay.stops.some((stop) => stop.placeName === experience.name)) return
+
+    const experienceStop: PlannedStop = {
+      id: `experience-${Date.now()}`,
+      placeId: `experience-${experience.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      placeName: experience.name,
+      category: 'experience',
+      categoryLabel: experience.category,
+      timeSlot: '',
+      startTime: '',
+      endTime: '',
+      durationMin: experience.durationMin,
+      travelFromPrevMin: 0,
+      distanceFromPrevKm: 0,
+      estimatedCost: 0,
+      priority: 'optional',
+      locked: false,
+      coordinates: experience.coordinates,
+      notes: experience.description,
+      image: experience.image,
+      explanation: `Placed near your route (${experience.nearestRouteDistanceKm} km away), respecting the experience hours.`,
+    }
+    const baseCoord = plannedTrip.selectedHotel?.coordinates || currentDay.stops[0]?.coordinates || { lat: 26.9124, lng: 75.7873 }
+    const dayEnd = parseScheduleTime(dailyTime.endTime)
+    const candidate = currentDay.stops.map((_, index) => index).concat(currentDay.stops.length)
+      .map((insertAt) => {
+        const stops = [...currentDay.stops]
+        stops.splice(insertAt, 0, experienceStop)
+        const schedule = recalculateStopSchedule(stops, dailyTime.startTime, baseCoord, transportMode)
+        const scheduled = schedule.stops[insertAt]
+        return { schedule, isOpen: parseScheduleTime(scheduled.startTime) >= experience.openingMinutes && parseScheduleTime(scheduled.endTime) <= experience.closingMinutes && parseScheduleTime(scheduled.endTime) <= dayEnd }
+      })
+      .filter((item) => item.isOpen)
+      .sort((a, b) => a.schedule.totalDistanceKm - b.schedule.totalDistanceKm)[0]
+
+    if (!candidate) {
+      setSaveToast(`${experience.name} cannot fit today's itinerary during its event hours.`)
+      window.setTimeout(() => setSaveToast(null), 3500)
+      return
+    }
+    const updatedDays = [...plannedTrip.days]
+    updatedDays[activeDayIdx] = { ...currentDay, stops: candidate.schedule.stops, totalDistanceKm: candidate.schedule.totalDistanceKm, totalTravelTimeMin: candidate.schedule.totalTravelTimeMin, totalSightseeingTimeMin: candidate.schedule.stops.reduce((total, stop) => total + stop.durationMin, 0) }
+    setPlannedTrip({ ...plannedTrip, days: updatedDays })
+    setSaveToast(`${experience.name} added to today's itinerary in the shortest feasible sequence.`)
+    window.setTimeout(() => setSaveToast(null), 3500)
   }
 
   const handleOptimizeCurrentDay = () => {
@@ -936,6 +1122,37 @@ export default function BuildTripPage() {
 
   // ── Coordinates Bounding Box for Dynamic Map ──
   const activeDayStops = plannedTrip?.days[activeDayIdx]?.stops || []
+  const artifactShopRecommendations = useMemo(() => {
+    const day = plannedTrip?.days[activeDayIdx]
+    if (!day) return []
+    const baseCoord = plannedTrip.selectedHotel?.coordinates || day.stops[0]?.coordinates || { lat: 26.9124, lng: 75.7873 }
+    const routeCoords = [baseCoord, ...day.stops.map((stop) => stop.coordinates).filter(Boolean) as { lat: number; lng: number }[]]
+    return localArtifactShops
+      .map((shop, shopIndex) => {
+        const anchor = routeCoords[shopIndex % routeCoords.length] || baseCoord
+        const coordinates = { lat: anchor.lat + (shopIndex % 2 ? 0.002 : -0.002), lng: anchor.lng + (shopIndex % 3 === 0 ? 0.002 : -0.001) }
+        const nearestRouteDistanceKm = Math.min(...routeCoords.map((point) => RouteOptimizationService.calculateDistanceKm(coordinates, point)))
+        const available = day.stops.length === 0 || day.stops.some((stop) => {
+          const start = getScheduleMinutes(stop.startTime)
+          return start >= shop.openingMinutes && start + 45 <= shop.closingMinutes
+        })
+        return { ...shop, coordinates, nearestRouteDistanceKm: Number(nearestRouteDistanceKm.toFixed(1)), available }
+      })
+      .sort((a, b) => a.nearestRouteDistanceKm - b.nearestRouteDistanceKm)
+  }, [plannedTrip, activeDayIdx])
+  const localExperienceRecommendations = useMemo(() => {
+    const day = plannedTrip?.days[activeDayIdx]
+    if (!day) return []
+    const baseCoord = plannedTrip.selectedHotel?.coordinates || day.stops[0]?.coordinates || { lat: 26.9124, lng: 75.7873 }
+    const routeCoords = [baseCoord, ...day.stops.map((stop) => stop.coordinates).filter(Boolean) as { lat: number; lng: number }[]]
+    return localExperiences.map((experience, index) => {
+      const anchor = routeCoords[index % routeCoords.length] || baseCoord
+      const coordinates = { lat: anchor.lat + (index % 2 ? 0.0015 : -0.0015), lng: anchor.lng + (index % 3 ? 0.001 : -0.001) }
+      const nearestRouteDistanceKm = Math.min(...routeCoords.map((point) => RouteOptimizationService.calculateDistanceKm(coordinates, point)))
+      const available = getScheduleMinutes(day.startTime) <= experience.closingMinutes && getScheduleMinutes(day.endTime) >= experience.openingMinutes
+      return { ...experience, coordinates, nearestRouteDistanceKm: Number(nearestRouteDistanceKm.toFixed(1)), available }
+    }).sort((a, b) => a.nearestRouteDistanceKm - b.nearestRouteDistanceKm)
+  }, [plannedTrip, activeDayIdx])
   const coordsList = activeDayStops
     .map((s) => s.coordinates)
     .filter(Boolean) as { lat: number; lng: number }[]
@@ -981,10 +1198,14 @@ export default function BuildTripPage() {
     }
 
     if (!mapInstanceRef.current) {
+      if ((mapContainerRef.current as any)._leaflet_id) {
+        delete (mapContainerRef.current as any)._leaflet_id
+      }
       mapInstanceRef.current = L.map(mapContainerRef.current, {
         zoomControl: true,
         attributionControl: true,
-      })
+      }).setView([26.9124, 75.7873], 12)
+
       mapRoadLayerRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19,
@@ -1029,36 +1250,53 @@ export default function BuildTripPage() {
         Number.isFinite(stop.coordinates.lat) &&
         Number.isFinite(stop.coordinates.lng)
     )
-    if (validStops.length === 0) {
+    const departurePoint = plannedTrip.selectedHotel?.coordinates
+    const hasDeparturePoint =
+      departurePoint &&
+      Number.isFinite(departurePoint.lat) &&
+      Number.isFinite(departurePoint.lng)
+    if (validStops.length === 0 && !hasDeparturePoint) {
       map.setView([26.9124, 75.7873], 12)
       return () => routeRequestController.abort()
     }
 
-    const routePoints = validStops.map((stop) => [stop.coordinates!.lat, stop.coordinates!.lng] as [number, number])
+    const stopPoints = validStops.map((stop) => [stop.coordinates!.lat, stop.coordinates!.lng] as [number, number])
+    const routePoints: Array<[number, number]> = hasDeparturePoint
+      ? [[departurePoint.lat, departurePoint.lng], ...stopPoints, [departurePoint.lat, departurePoint.lng]]
+      : stopPoints
+
+    // Center and fit bounds FIRST before layer projection calculations
+    map.fitBounds(L.latLngBounds(routePoints), { padding: [28, 28], maxZoom: 15 })
+
     const addDirectionPointers = (points: Array<[number, number]>) => {
       if (points.length < 2) return
-      const pointerIndexes = [...new Set([
-        Math.floor(points.length * 0.3),
-        Math.floor(points.length * 0.6),
-        Math.floor(points.length * 0.85),
-      ])].filter((index) => index > 0 && index < points.length)
+      try {
+        if (!(map as any)._loaded) return
+        const pointerIndexes = [...new Set([
+          Math.floor(points.length * 0.3),
+          Math.floor(points.length * 0.6),
+          Math.floor(points.length * 0.85),
+        ])].filter((index) => index > 0 && index < points.length)
 
-      pointerIndexes.forEach((index) => {
-        const previous = points[index - 1]
-        const current = points[index]
-        const previousPoint = map.latLngToLayerPoint(previous)
-        const currentPoint = map.latLngToLayerPoint(current)
-        const angle = (Math.atan2(currentPoint.y - previousPoint.y, currentPoint.x - previousPoint.x) * 180) / Math.PI
-        L.marker(current, {
-          icon: L.divIcon({
-            className: '',
-            html: `<div style="width:26px;height:26px;border-radius:9999px;background:#2563eb;border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);transform:rotate(${angle}deg)">➜</div>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13],
-          }),
-          interactive: false,
-        }).addTo(directionLayer)
-      })
+        pointerIndexes.forEach((index) => {
+          const previous = points[index - 1]
+          const current = points[index]
+          const previousPoint = map.latLngToLayerPoint(previous)
+          const currentPoint = map.latLngToLayerPoint(current)
+          const angle = (Math.atan2(currentPoint.y - previousPoint.y, currentPoint.x - previousPoint.x) * 180) / Math.PI
+          L.marker(current, {
+            icon: L.divIcon({
+              className: '',
+              html: `<div style="width:26px;height:26px;border-radius:9999px;background:#2563eb;border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;line-height:1;box-shadow:0 2px 6px rgba(15,23,42,.35);transform:rotate(${angle}deg)">➜</div>`,
+              iconSize: [26, 26],
+              iconAnchor: [13, 13],
+            }),
+            interactive: false,
+          }).addTo(directionLayer)
+        })
+      } catch (err) {
+        console.warn('Could not add direction pointers:', err)
+      }
     }
 
     routeLineRef.current = L.polyline(routePoints, {
@@ -1068,23 +1306,61 @@ export default function BuildTripPage() {
     }).addTo(routeLayer)
     addDirectionPointers(routePoints)
 
+    if (hasDeparturePoint) {
+      const departureMarker = L.marker([departurePoint.lat, departurePoint.lng], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="width:34px;height:34px;border-radius:9999px;background:#4f46e5;border:2.5px solid white;color:white;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 12px rgba(79,70,229,.45)">⌂</div>`,
+          iconSize: [34, 34],
+          iconAnchor: [17, 17],
+        }),
+        zIndexOffset: 1100,
+      }).addTo(routeLayer)
+      departureMarker.bindTooltip(
+        `Departure: ${plannedTrip.selectedHotel?.name || 'Hotel Base'}`,
+        { direction: 'top', offset: [0, -16] }
+      )
+    }
+
     validStops.forEach((stop, stopIndex) => {
       const isMealStop = stop.isMealStop
       const isSelected = selectedMapPinId === stop.id
+      const markerHtml = isMealStop
+        ? `<div style="
+            width: 32px; height: 32px; border-radius: 9999px;
+            background: linear-gradient(135deg, #10b981, #047857);
+            border: 2.5px solid white;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.45);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; transform: scale(${isSelected ? 1.2 : 1});
+            transition: transform 0.2s ease;
+          ">🍛</div>`
+        : `<div style="
+            width: ${isSelected ? 36 : 30}px; height: ${isSelected ? 36 : 30}px;
+            border-radius: 9999px;
+            background: ${isSelected ? 'linear-gradient(135deg, #E5293E, #b91c1c)' : 'linear-gradient(135deg, #1e293b, #0f172a)'};
+            border: 2.5px solid white;
+            color: white; font-family: ui-sans-serif, system-ui, sans-serif;
+            font-size: ${isSelected ? 12 : 11}px; font-weight: 900;
+            box-shadow: 0 4px 12px ${isSelected ? 'rgba(229,41,62,0.5)' : 'rgba(15,23,42,0.35)'};
+            display: flex; align-items: center; justify-content: center;
+            transform: scale(${isSelected ? 1.15 : 1});
+            transition: transform 0.2s ease;
+          ">${stopIndex + 1}</div>`
+
       const marker = L.marker([stop.coordinates!.lat, stop.coordinates!.lng], {
         icon: L.divIcon({
           className: '',
-          html: `<div style="width:${isSelected ? 34 : 28}px;height:${isSelected ? 34 : 28}px;border-radius:9999px;border:2px solid white;background:${isMealStop ? '#10b981' : isSelected ? '#fbbf24' : '#2563eb'};color:${isSelected ? '#0f172a' : 'white'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;box-shadow:0 3px 8px rgba(15,23,42,.3)">${isMealStop ? '🍴' : stopIndex + 1}</div>`,
-          iconSize: [isSelected ? 34 : 28, isSelected ? 34 : 28],
-          iconAnchor: [isSelected ? 17 : 14, isSelected ? 17 : 14],
+          html: markerHtml,
+          iconSize: [isSelected ? 36 : 30, isSelected ? 36 : 30],
+          iconAnchor: [isSelected ? 18 : 15, isSelected ? 18 : 15],
         }),
+        zIndexOffset: isSelected ? 1000 : 100,
       }).addTo(routeLayer)
 
-      marker.bindTooltip(`Stop ${stopIndex + 1}: ${stop.placeName}`, { direction: 'top', offset: [0, -12] })
+      marker.bindTooltip(`Stop ${stopIndex + 1}: ${stop.placeName}`, { direction: 'top', offset: [0, -14] })
       marker.on('click', () => setSelectedMapPinId(stop.id))
     })
-
-    map.fitBounds(L.latLngBounds(routePoints), { padding: [28, 28], maxZoom: 15 })
 
     if (routePoints.length > 1) {
       const coordinates = routePoints.map(([lat, lng]) => `${lng},${lat}`).join(';')
@@ -1147,6 +1423,76 @@ export default function BuildTripPage() {
     currentTrafficMultiplier,
   ])
 
+  useEffect(() => {
+    if (!mapInstanceRef.current || !liveLocation) return
+    liveLocationMarkerRef.current?.remove()
+    liveLocationMarkerRef.current = L.marker([liveLocation.lat, liveLocation.lng], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div style="width:38px;height:38px;border-radius:9999px;background:#2563eb;border:3px solid white;box-shadow:0 0 0 8px rgba(37,99,235,.2),0 4px 12px rgba(15,23,42,.35);display:flex;align-items:center;justify-content:center;color:white;font-size:17px">➤</div>',
+        iconSize: [38, 38],
+        iconAnchor: [19, 19],
+      }),
+      zIndexOffset: 1800,
+    }).addTo(mapInstanceRef.current)
+    liveLocationMarkerRef.current.bindTooltip('Your live location', { direction: 'top', offset: [0, -19] })
+    return () => {
+      liveLocationMarkerRef.current?.remove()
+      liveLocationMarkerRef.current = null
+    }
+  }, [liveLocation, isMapExpanded])
+
+  useEffect(() => () => {
+    if (locationWatchIdRef.current !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(locationWatchIdRef.current)
+    }
+  }, [])
+
+  const shareLiveLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationShareMessage('Live location is not supported by this browser.')
+      return
+    }
+    if (isSharingLocation) {
+      if (locationWatchIdRef.current !== null) navigator.geolocation.clearWatch(locationWatchIdRef.current)
+      locationWatchIdRef.current = null
+      setIsSharingLocation(false)
+      setLocationShareMessage('Live location sharing stopped.')
+      return
+    }
+
+    setLocationShareMessage('Requesting your location permission...')
+    locationWatchIdRef.current = navigator.geolocation.watchPosition(
+      ({ coords }) => {
+        const nextLocation = { lat: coords.latitude, lng: coords.longitude }
+        setLiveLocation(nextLocation)
+        setIsSharingLocation(true)
+        const shareUrl = `${window.location.origin}/live-location?lat=${nextLocation.lat.toFixed(6)}&lng=${nextLocation.lng.toFixed(6)}`
+        if (navigator.share) {
+          navigator.share({
+            title: "My live Trippin' Bharat location",
+            text: "Follow my live location while I am travelling with Trippin' Bharat.",
+            url: shareUrl,
+          }).catch(() => undefined)
+        } else {
+          navigator.clipboard?.writeText(shareUrl).then(
+            () => setLocationShareMessage('Live location link copied. Share it with your travel companions.'),
+            () => setLocationShareMessage('Live location is active on the map.'),
+          )
+        }
+      },
+      () => {
+        setIsSharingLocation(false)
+        setLocationShareMessage('Location permission was unavailable. Please enable it to share live location.')
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+    )
+  }
+
+  const triggerEmergencyCall = (number: string) => {
+    window.location.href = `tel:${number}`
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
       <Navbar />
@@ -1167,7 +1513,7 @@ export default function BuildTripPage() {
       </AnimatePresence>
 
       {/* ── Main Container ── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32 space-y-8">
         {/* ══════════════════════════════════════════════════════════════
             HEADER & STEP PROGRESS BAR
         ══════════════════════════════════════════════════════════════ */}
@@ -1255,6 +1601,44 @@ export default function BuildTripPage() {
           )}
         </div>
 
+        {/* Local experiences and live events */}
+        <div className="space-y-4 rounded-3xl border border-emerald-200 bg-emerald-50/40 p-5 text-slate-900 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-emerald-900">
+              <Compass size={15} className="text-emerald-600" />
+              <span>Local Experiences & What’s On Today</span>
+            </div>
+            <span className="text-[10px] font-black uppercase text-emerald-700">Near your route</span>
+          </div>
+          <p className="text-[11px] leading-relaxed text-slate-600">See everyday local life and verified current events happening near your journey. Trippin' Bharat checks the time window before adding anything to today’s plan.</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {localExperienceRecommendations.slice(0, showMoreLocalExperiences ? undefined : 4).map((experience) => (
+              <div key={experience.name} className="overflow-hidden rounded-2xl border border-emerald-200 bg-white">
+                <div className="flex gap-3 p-3">
+                  <img src={experience.image} alt={experience.name} className="h-20 w-20 shrink-0 rounded-xl object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h5 className="text-[11px] font-black leading-tight text-slate-900">{experience.name}</h5>
+                      <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[8px] font-black uppercase text-emerald-800">{experience.category}</span>
+                    </div>
+                    <p className="mt-1 text-[10px] leading-4 text-slate-600">{experience.description}</p>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[9px] font-bold">
+                      <span className="text-slate-500">{experience.nearestRouteDistanceKm} km from route · {formatOpeningWindow(experience.openingMinutes, experience.closingMinutes)}</span>
+                      <button type="button" onClick={() => handleAddLocalExperienceToCurrentDay(experience)} disabled={!experience.available} className="shrink-0 rounded-lg bg-emerald-600 px-2 py-1 text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400">{experience.available ? '+ Add today' : 'Unavailable'}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {localExperienceRecommendations.length > 4 && (
+            <button type="button" onClick={() => setShowMoreLocalExperiences((shown) => !shown)} className="mx-auto flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-[10px] font-black text-emerald-800 hover:border-emerald-400">
+              {showMoreLocalExperiences ? 'Show Less Experiences' : 'Show More Experiences'}
+              {showMoreLocalExperiences ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            </button>
+          )}
+        </div>
+
         {/* ══════════════════════════════════════════════════════════════
             MODE A: MULTI-STEP WIZARD (WHEN NOT YET GENERATED)
         ══════════════════════════════════════════════════════════════ */}
@@ -1302,7 +1686,7 @@ export default function BuildTripPage() {
                             alt={d.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              ;(e.currentTarget as HTMLImageElement).src = '/images/places/city-palace.jpg'
+                              ;(e.currentTarget as HTMLElement).style.opacity = '0.7'
                             }}
                           />
                         </div>
@@ -1776,7 +2160,11 @@ export default function BuildTripPage() {
                             alt={place.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              ;(e.currentTarget as HTMLImageElement).src = '/images/places/city-palace.jpg'
+                              if (place.images[1]) {
+                                ;(e.currentTarget as HTMLImageElement).src = place.images[1]
+                              } else if (destinationData?.heroBanner) {
+                                ;(e.currentTarget as HTMLImageElement).src = destinationData.heroBanner
+                              }
                             }}
                           />
                           <span className="absolute bottom-1 right-1 text-[9px] font-black bg-black/70 text-white px-1.5 py-0.2 rounded">
@@ -1933,14 +2321,65 @@ export default function BuildTripPage() {
                   </p>
                 </div>
 
-                {/* Stays Carousel / Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {destinationData?.stays.map((stay) => {
+                {/* Hotel categories */}
+                <div className="grid grid-cols-1 gap-3">
+                  {([
+                    { id: 'budget', label: 'Low Cost' },
+                    { id: 'comfort', label: 'Medium Range' },
+                    { id: 'luxury', label: 'Luxury' },
+                    { id: 'ultra_luxury', label: 'Ultra Luxury' },
+                  ] as const).map((tier) => {
+                    const staysInTier = (destinationData?.stays || []).filter((stay) => stay.tier === tier.id)
+                    return (
+                      <button
+                        key={tier.id}
+                        type="button"
+                        onClick={() => setOpenHotelTier(tier.id)}
+                        className="flex items-center justify-between rounded-2xl border-2 border-slate-200 bg-white p-5 text-left transition-all hover:border-blue-400 hover:bg-blue-50/40 cursor-pointer"
+                      >
+                        <span className="block text-base font-black uppercase tracking-wide text-slate-900">{tier.label}</span>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase text-slate-500">
+                          {staysInTier.length} {staysInTier.length === 1 ? 'Hotel' : 'Hotels'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {openHotelTier && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-md">
+                    <div className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-7 shadow-2xl">
+                      {(() => {
+                        const tier = ([
+                          { id: 'budget', label: 'Low Cost' },
+                          { id: 'comfort', label: 'Medium Range' },
+                          { id: 'luxury', label: 'Luxury' },
+                          { id: 'ultra_luxury', label: 'Ultra Luxury' },
+                        ] as const).find((item) => item.id === openHotelTier)
+                        const staysInTier = (destinationData?.stays || [])
+                          .filter((stay) => stay.tier === openHotelTier)
+                          .sort((a, b) => a.pricePerNight - b.pricePerNight)
+                        return (
+                          <>
+                            <div className="mb-5 flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+                              <div>
+                                <h4 className="text-xl font-black text-slate-900">{tier?.label} Hotels</h4>
+                                <p className="mt-1 text-xs font-medium text-slate-500">Choose your starting base from this category.</p>
+                              </div>
+                              <button type="button" onClick={() => setOpenHotelTier(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 cursor-pointer" aria-label="Close hotel category">
+                                <X size={20} />
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {staysInTier.map((stay) => {
                     const isSel = selectedHotelId === stay.id
                     return (
                       <div
                         key={stay.id}
-                        onClick={() => setSelectedHotelId(stay.id)}
+                        onClick={() => {
+                          setSelectedHotelId(stay.id)
+                          setSelectedHotelDetails(stay)
+                        }}
                         className={`p-4 rounded-2xl border-2 cursor-pointer transition-all space-y-2.5 ${
                           isSel
                             ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-500/10 shadow-sm'
@@ -1953,7 +2392,9 @@ export default function BuildTripPage() {
                             alt={stay.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              ;(e.currentTarget as HTMLImageElement).src = '/images/places/city-palace.jpg'
+                              if (destinationData?.heroBanner) {
+                                ;(e.currentTarget as HTMLImageElement).src = destinationData.heroBanner
+                              }
                             }}
                           />
                         </div>
@@ -1965,11 +2406,125 @@ export default function BuildTripPage() {
                           ₹{stay.pricePerNight.toLocaleString()}{' '}
                           <span className="text-[10px] text-slate-400 font-normal">/ night</span>
                         </div>
+                        <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600">
+                          {stay.tier === 'ultra_luxury' ? 'Ultra Luxury' : stay.tier === 'luxury' ? 'Luxury' : stay.tier === 'comfort' ? 'Medium Range' : 'Low Cost'}
+                        </span>
                         <p className="text-[11px] text-slate-500 line-clamp-1">{stay.address}</p>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setSelectedHotelDetails(stay)
+                          }}
+                          className="w-full rounded-lg border border-blue-200 bg-blue-50 py-1.5 text-[10px] font-black text-blue-700 hover:bg-blue-100"
+                        >
+                          View Full Stay Details
+                        </button>
                       </div>
                     )
-                  })}
-                </div>
+                              })}
+                            </div>
+                          </>
+                        )
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {selectedHotelDetails && (
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
+                    <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white shadow-2xl">
+                      {(() => {
+                        const stay = selectedHotelDetails
+                        const galleryImages = Array.from(new Set([
+                          stay.image,
+                          ...(stay.galleryImages || []),
+                          ...(destinationData?.heroGallery || []),
+                        ])).slice(0, 8)
+                        const galleryVideos = stay.galleryVideos || []
+                        return (
+                          <>
+                            <div className="relative h-56 sm:h-72 overflow-hidden rounded-t-3xl">
+                              <img src={stay.image} alt={stay.name} className="h-full w-full object-cover" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 to-transparent" />
+                              <div className="absolute bottom-5 left-6 right-6 flex items-end justify-between gap-4 text-white">
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">{stay.typeLabel || 'Hotel profile'}</p>
+                                  <h3 className="mt-1 text-2xl font-black">{stay.name}</h3>
+                                </div>
+                                <button type="button" onClick={() => setSelectedHotelDetails(null)} className="rounded-xl bg-white/20 p-2 backdrop-blur hover:bg-white/35" aria-label="Close hotel details">
+                                  <X size={20} />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="space-y-6 p-5 sm:p-7">
+                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                <div className="rounded-2xl bg-blue-50 p-3"><div className="text-[10px] font-black uppercase text-blue-600">From</div><div className="mt-1 text-lg font-black text-slate-900">₹{stay.pricePerNight.toLocaleString()}<span className="text-[10px] font-medium text-slate-500"> / night</span></div></div>
+                                <div className="rounded-2xl bg-amber-50 p-3"><div className="text-[10px] font-black uppercase text-amber-600">Rating</div><div className="mt-1 flex items-center gap-1 text-lg font-black text-slate-900"><Star size={15} className="fill-amber-400 text-amber-400" /> {stay.rating.toFixed(1)}</div></div>
+                                <div className="rounded-2xl bg-emerald-50 p-3"><div className="text-[10px] font-black uppercase text-emerald-600">Reviews</div><div className="mt-1 text-lg font-black text-slate-900">{(stay.reviewsCount || 0).toLocaleString()}</div></div>
+                                <div className="rounded-2xl bg-violet-50 p-3"><div className="text-[10px] font-black uppercase text-violet-600">Category</div><div className="mt-1 text-sm font-black text-slate-900">{stay.tier === 'ultra_luxury' ? 'Ultra Luxury' : stay.tier === 'luxury' ? 'Luxury' : stay.tier === 'comfort' ? 'Medium Range' : 'Low Cost'}</div></div>
+                              </div>
+                              <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="rounded-2xl border border-slate-200 p-4">
+                                  <h4 className="mb-3 text-sm font-black text-slate-900">Hotel information</h4>
+                                  <div className="space-y-3 text-xs text-slate-600">
+                                    <div className="flex gap-2"><MapPin size={16} className="shrink-0 text-blue-600" /><span>{stay.address}</span></div>
+                                    <div className="flex gap-2"><Phone size={16} className="shrink-0 text-blue-600" /><span>{stay.contactPhone || '+91 1800 123 4567'}</span></div>
+                                    <div className="flex gap-2"><UserRound size={16} className="shrink-0 text-blue-600" /><span>Owner: {stay.ownerName || 'Verified hotel management'}</span></div>
+                                  </div>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200 p-4">
+                                  <h4 className="mb-3 text-sm font-black text-slate-900">Amenities</h4>
+                                  <div className="flex flex-wrap gap-2">{stay.amenities.map((amenity) => <span key={amenity} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">{amenity}</span>)}</div>
+                                </div>
+                              </div>
+                              <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="rounded-2xl bg-slate-50 p-4">
+                                  <h4 className="mb-2 text-sm font-black text-slate-900">About this stay</h4>
+                                  <p className="text-xs leading-5 text-slate-600">
+                                    {stay.description || `${stay.name} is a ${stay.typeLabel?.toLowerCase() || 'comfortable stay'} designed for travellers exploring ${destinationData?.name || 'the destination'}. Enjoy convenient access to local landmarks, attentive hospitality, and the amenities listed above.`}
+                                  </p>
+                                </div>
+                                <div className="rounded-2xl bg-slate-50 p-4">
+                                  <h4 className="mb-2 text-sm font-black text-slate-900">Stay details</h4>
+                                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-600">
+                                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Check-in</span><strong className="text-slate-800">2:00 PM</strong></div>
+                                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Check-out</span><strong className="text-slate-800">11:00 AM</strong></div>
+                                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Guest capacity</span><strong className="text-slate-800">2 guests / room</strong></div>
+                                    <div><span className="block text-[10px] font-black uppercase text-slate-400">Booking</span><strong className="text-slate-800">Instant confirmation</strong></div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="rounded-2xl border border-slate-200 p-4">
+                                <div className="mb-3 flex items-center gap-2"><ShieldCheck size={18} className="text-emerald-600" /><h4 className="text-sm font-black text-slate-900">Guest policies & nearby places</h4></div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                  <div className="space-y-2 text-xs text-slate-600">
+                                    <p>• Government ID required at check-in</p>
+                                    <p>• Complimentary cancellation up to 24 hours before arrival</p>
+                                    <p>• Quiet hours: 10:00 PM – 7:00 AM</p>
+                                    <p>• 24-hour front desk and local transfer assistance</p>
+                                  </div>
+                                  <div className="space-y-2 text-xs text-slate-600">
+                                    {stay.distanceToItineraryHighlights.length > 0
+                                      ? stay.distanceToItineraryHighlights.slice(0, 3).map((place) => (
+                                        <p key={place.placeId}><strong className="text-slate-800">{place.placeName}</strong> · {place.distanceKm} km · {place.drivingTimeMin} min drive</p>
+                                      ))
+                                      : <p>Conveniently located near the destination's key sightseeing spots.</p>}
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="mb-3 flex items-center gap-2"><Images size={18} className="text-blue-600" /><h4 className="text-sm font-black text-slate-900">Gallery</h4></div>
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{galleryImages.map((image, index) => <img key={`${image}-${index}`} src={image} alt={`${stay.name} gallery ${index + 1}`} className="h-28 w-full rounded-xl object-cover" onError={(e) => { e.currentTarget.src = stay.image }} />)}</div>
+                                {galleryVideos.length > 0 ? <div className="mt-4 grid gap-3 sm:grid-cols-2">{galleryVideos.map((video) => <div key={video} className="overflow-hidden rounded-xl border border-slate-200"><iframe className="h-48 w-full" src={video} title={`${stay.name} video`} allowFullScreen /></div>)}</div> : <div className="mt-4 flex items-center gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-500"><Play size={15} className="text-blue-600" /> Video tours will appear here when provided by the hotel.</div>}
+                              </div>
+                            </div>
+                          </>
+                        )
+                      })()}
+                    </div>
+                  </div>
+                )}
 
                 {/* Pre-Trip Constraint Summary Card (Requirement 44) */}
                 <div className="p-6 rounded-3xl bg-slate-900 text-white space-y-4 shadow-xl border border-slate-800">
@@ -2040,7 +2595,7 @@ export default function BuildTripPage() {
                   </button>
                 </div>
               </div>
-            )}
+          )}
           </div>
         )}
 
@@ -2243,6 +2798,20 @@ export default function BuildTripPage() {
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     <span className="text-[11px] font-bold text-slate-500">Live time: {formatLiveClock}</span>
                     <button
+                      onClick={() => setShowSOSPanel(true)}
+                      className="px-4 py-2 rounded-xl text-xs font-black text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer bg-rose-600 hover:bg-rose-700"
+                    >
+                      <AlertCircle size={14} />
+                      <span>SOS</span>
+                    </button>
+                    <button
+                      onClick={() => setShowGuidePanel(true)}
+                      className="px-4 py-2 rounded-xl text-xs font-black text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer bg-blue-600 hover:bg-blue-700"
+                    >
+                      <UserRound size={14} />
+                      <span>Book a Guide</span>
+                    </button>
+                    <button
                       onClick={startCurrentDay}
                       className={`px-4 py-2 rounded-xl text-xs font-black text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                         startedDays[activeDayIdx] ? 'bg-emerald-600' : 'bg-rose-600 hover:bg-rose-700'
@@ -2272,7 +2841,7 @@ export default function BuildTripPage() {
                     </p>
                     {nearbyLowerCrowdSuggestion && (
                       <p className="mt-2 font-bold text-emerald-800">
-                        Suggestion: {nearbyLowerCrowdSuggestion.place.name} is about {nearbyLowerCrowdSuggestion.distanceKm.toFixed(1)} km away and is marked for a quieter visit at {nearbyLowerCrowdSuggestion.place.bestTimeToVisit?.split('(')[0].trim() || 'a quieter time'}.
+                        Suggestion: {nearbyLowerCrowdSuggestion.place.name} is about {nearbyLowerCrowdSuggestion.distanceKm.toFixed(1)} km away and is marked for a quieter visit at {formatBestTimeToVisit(nearbyLowerCrowdSuggestion.place.bestTimeToVisit) || 'a quieter time'}.
                       </p>
                     )}
                   </div>
@@ -2381,7 +2950,7 @@ export default function BuildTripPage() {
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                  {lunchSpots.slice(0, 2).map((spot) => (
+                                  {lunchSpots.slice(0, showMoreLunchSpots ? undefined : 2).map((spot) => (
                                     <div
                                       key={spot.id}
                                       className="p-2.5 rounded-2xl bg-white/95 border border-emerald-200/70 shadow-2xs hover:border-emerald-400 transition-all space-y-1.5"
@@ -2392,7 +2961,9 @@ export default function BuildTripPage() {
                                           alt={spot.name}
                                           className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
                                           onError={(e) => {
-                                            ;(e.currentTarget as HTMLImageElement).src = '/images/places/ram-jhula.jpg'
+                                            if (destinationData?.heroBanner) {
+                                              ;(e.currentTarget as HTMLImageElement).src = destinationData.heroBanner
+                                            }
                                           }}
                                         />
                                         <div className="min-w-0 flex-1">
@@ -2429,6 +3000,16 @@ export default function BuildTripPage() {
                                     </div>
                                   ))}
                                 </div>
+                                {lunchSpots.length > 2 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowMoreLunchSpots((isShown) => !isShown)}
+                                    className="mx-auto flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-[10px] font-black text-emerald-800 transition-colors hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer"
+                                  >
+                                    <span>{showMoreLunchSpots ? 'Show Less' : 'Show More Restaurants'}</span>
+                                    {showMoreLunchSpots ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -2438,7 +3019,7 @@ export default function BuildTripPage() {
 
                     // ── STANDARD ATTRACTION STOP RENDERING ──
                     const stopPlace = destinationData?.places.find((place) => place.id === stop.placeId)
-                    const recommendedVisitTime = stopPlace?.bestTimeToVisit?.split('(')[0].trim()
+                    const recommendedVisitTime = formatBestTimeToVisit(stopPlace?.bestTimeToVisit)
 
                     return (
                       <div
@@ -2612,6 +3193,46 @@ export default function BuildTripPage() {
                   <span>+ Add Place to {plannedTrip.days[activeDayIdx]?.dateLabel}</span>
                 </button>
 
+                {/* Local artisan marketplace */}
+                <div className="space-y-4 p-5 sm:p-6 rounded-3xl bg-white text-slate-900 border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-slate-700">
+                      <Sparkles size={14} className="text-amber-600" />
+                      <span>Shop Local Artifacts in {destinationData?.name}</span>
+                    </div>
+                    <span className="text-[10px] font-black uppercase text-emerald-600">✓ Verified by Trippin' Bharat</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-slate-500">
+                    Discover authentic handmade products from verified local artisans, support traditional makers, and take home a meaningful piece of {destinationData?.name}.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {artifactShopRecommendations.slice(0, showMoreLocalArtifactShops ? undefined : 3).map((shop) => (
+                      <button type="button" key={shop.name} onClick={() => setSelectedArtifactShop(shop)} className="text-left rounded-2xl border border-amber-200 bg-amber-50/40 p-2.5 space-y-2 hover:border-amber-400 hover:shadow-md transition-all cursor-pointer">
+                        <div className="relative">
+                          <img src={shop.image} alt={shop.name} className="h-24 w-full rounded-xl object-cover" />
+                          <span className="absolute left-2 top-2 rounded-full bg-emerald-600 px-2 py-0.5 text-[8px] font-black uppercase text-white">Verified</span>
+                        </div>
+                        <div className="flex items-start justify-between gap-2">
+                          <h5 className="text-[11px] font-black leading-tight text-slate-900">{shop.name}</h5>
+                          <span className="shrink-0 text-[9px] font-bold text-amber-700">Local</span>
+                        </div>
+                        <span className="inline-flex rounded-full bg-white px-2 py-1 text-[9px] font-bold text-amber-800">{shop.specialty}</span>
+                        <p className="text-[10px] leading-4 text-slate-600">{shop.description}</p>
+                        <div className="flex items-center justify-between border-t border-amber-200 pt-1.5 text-[9px] text-slate-500">
+                          <span>{shop.nearestRouteDistanceKm} km from route</span>
+                          <span className={`font-black ${shop.available ? 'text-emerald-700' : 'text-rose-600'}`}>{shop.available ? formatOpeningWindow(shop.openingMinutes, shop.closingMinutes) : 'Limited today'}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {artifactShopRecommendations.length > 3 && (
+                    <button type="button" onClick={() => setShowMoreLocalArtifactShops((isShown) => !isShown)} className="mx-auto flex items-center gap-1.5 rounded-xl border border-amber-200 bg-white px-4 py-2 text-[10px] font-black text-amber-800 transition-colors hover:border-amber-400 hover:bg-amber-50 cursor-pointer">
+                      <span>{showMoreLocalArtifactShops ? 'Show Less Shops' : 'Show More Shops'}</span>
+                      {showMoreLocalArtifactShops ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                    </button>
+                  )}
+                </div>
+
                 {/* ══════════════════════════════════════════════════════════════
                     DONE ROAMING FOR THE DAY? EVENING DINNER & TONIGHT'S REST
                 ══════════════════════════════════════════════════════════════ */}
@@ -2646,8 +3267,10 @@ export default function BuildTripPage() {
                       <span className="text-[11px] text-slate-500 font-medium">Open for evening dining</span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {(destinationData?.foodSpots || []).map((spot) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {(destinationData?.foodSpots || [])
+                        .slice(0, showMoreDinnerSpots ? undefined : 3)
+                        .map((spot) => (
                         <div
                           key={spot.id}
                           className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-amber-300 transition-all space-y-2 group"
@@ -2658,7 +3281,9 @@ export default function BuildTripPage() {
                               alt={spot.name}
                               className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0 group-hover:scale-105 transition-transform"
                               onError={(e) => {
-                                ;(e.currentTarget as HTMLImageElement).src = '/images/places/laxman-jhula.jpg'
+                                if (destinationData?.heroBanner) {
+                                  ;(e.currentTarget as HTMLImageElement).src = destinationData.heroBanner
+                                }
                               }}
                             />
                             <div className="min-w-0 flex-1 space-y-0.5">
@@ -2701,104 +3326,35 @@ export default function BuildTripPage() {
                             </span>
                           </div>
                         </div>
-                      ))}
+                        ))}
                     </div>
+
+                    {(destinationData?.foodSpots || []).length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowMoreDinnerSpots((isShown) => !isShown)}
+                        className="mx-auto flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-700 transition-colors hover:border-amber-400 hover:text-amber-700 cursor-pointer"
+                      >
+                        <span>{showMoreDinnerSpots ? 'Show Less' : 'Show More'}</span>
+                        {showMoreDinnerSpots ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    )}
                   </div>
 
-                  {/* PART 2: Where to Stay Tonight (Active Base & Alternative Stays) */}
-                  <div className="space-y-3 pt-4 border-t border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-black text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
-                        <Building2 size={14} className="text-blue-600" />
-                        <span>Where to Stay Tonight (Hotel Base & Stays in {destinationData?.name})</span>
-                      </div>
-                      <span className="text-[11px] text-emerald-600 font-bold">● Active Trip Base</span>
-                    </div>
-
-                    {/* Stays Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {(destinationData?.stays || []).map((stay) => {
-                        const isBase = plannedTrip.selectedHotel?.id === stay.id
-                        return (
-                          <div
-                            key={stay.id}
-                            onClick={() => handleQuickChangeHotel(stay.id)}
-                            className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer space-y-2 ${
-                              isBase
-                                ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20 shadow-md'
-                                : 'bg-slate-50 border-slate-200 hover:border-blue-300'
-                            }`}
-                          >
-                            <div className="h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative">
-                              <img
-                                src={stay.image}
-                                alt={stay.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  ;(e.currentTarget as HTMLImageElement).src = '/images/places/city-palace.jpg'
-                                }}
-                              />
-                              {isBase && (
-                                <span className="absolute top-2 right-2 bg-blue-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md shadow-md">
-                                  Active Base
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                              <h5 className="text-xs font-black text-slate-900 truncate">{stay.name}</h5>
-                              <span className="text-[10px] font-black text-amber-600 shrink-0">★ {stay.rating}</span>
-                            </div>
-
-                            <div className="text-xs font-black text-emerald-600">
-                              ₹{Number(stay.pricePerNight || 0).toLocaleString()}{' '}
-                              <span className="text-[10px] text-slate-500 font-normal">/ night</span>
-                            </div>
-
-                            <div className="flex flex-wrap gap-1">
-                              {stay.amenities?.slice(0, 2).map((a, aIdx) => (
-                                <span
-                                  key={aIdx}
-                                  className="text-[9px] font-medium bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded"
-                                >
-                                  {a}
-                                </span>
-                              ))}
-                            </div>
-
-                            <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                              <span className="text-[10px] text-slate-500 truncate">
-                                {stay.address?.split(',')[0] || destinationData?.name || 'Central area'}
-                              </span>
-                              <button
-                                type="button"
-                                className={`text-[10px] font-black px-2 py-0.5 rounded-md transition-all ${
-                                  isBase
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                                }`}
-                              >
-                                {isBase ? '✓ Selected' : 'Set as Base'}
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
                 </div>
               </div>
 
               {/* Right Column: Synchronized Interactive Map & Route Flow */}
-              <div className={`lg:col-span-5 space-y-6 ${mobileTab === 'itinerary' ? 'hidden lg:block' : 'block'}`}>
+              <div className={`lg:col-span-5 space-y-5 lg:sticky lg:top-24 self-start ${mobileTab === 'itinerary' ? 'hidden lg:block' : 'block'}`}>
                 {isMapExpanded && (
                   <div
-                    className="fixed inset-0 z-[90] bg-slate-950/30 backdrop-blur-sm"
+                    className="fixed inset-0 z-[90] bg-slate-950/40 backdrop-blur-sm"
                     onClick={() => setIsMapExpanded(false)}
                     aria-hidden="true"
                   />
                 )}
-                {/* Visual Map Canvas */}
+
+                {/* Visual Map Card */}
                 <div
                   style={
                     isMapExpanded
@@ -2806,231 +3362,373 @@ export default function BuildTripPage() {
                           position: 'fixed',
                           top: '50%',
                           left: '50%',
-                          width: 'min(92vw, calc(100vh - 6rem), 720px)',
-                          height: 'min(92vw, calc(100vh - 6rem), 720px)',
+                          width: 'min(92vw, calc(100vh - 6rem), 780px)',
+                          height: 'min(92vw, calc(100vh - 6rem), 780px)',
                           transform: 'translate(-50%, -50%)',
                         }
                       : undefined
                   }
-                  className={`bg-white text-slate-900 rounded-3xl p-5 shadow-sm border border-slate-200 space-y-4 relative ${
+                  className={`bg-white text-slate-900 rounded-3xl p-5 shadow-sm border border-slate-200/90 space-y-4 relative ${
                     isMapExpanded
-                      ? 'z-[100] overflow-y-auto shadow-2xl ring-4 ring-white/80'
-                      : 'overflow-hidden min-h-[460px]'
+                      ? 'z-[100] overflow-y-auto shadow-2xl ring-4 ring-white/90'
+                      : 'overflow-hidden'
                   }`}
                 >
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                    <div className="text-xs font-black uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
-                      <MapPin size={14} />
-                      <span>{plannedTrip.days[activeDayIdx]?.dateLabel} Route Map</span>
+                  {/* Clean Header: Title & Sleek Controls */}
+                  <div className="space-y-2.5 pb-3 border-b border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                          <Navigation size={15} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-black text-slate-900 tracking-tight">Interactive Route Map</h4>
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                              {coordsList.length} Stops
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-medium text-slate-400">
+                            {plannedTrip.days[activeDayIdx]?.dateLabel} Circuit
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={shareLiveLocation}
+                          className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[10px] font-black transition-all cursor-pointer ${
+                            isSharingLocation
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-100'
+                          }`}
+                          title={isSharingLocation ? 'Stop sharing live location' : 'Share your live location'}
+                        >
+                          <LocateFixed size={13} />
+                          <span>{isSharingLocation ? 'Sharing Live' : 'Share Live Location'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsSatelliteView((s) => !s)}
+                          className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                            isSatelliteView
+                              ? 'bg-slate-900 text-white shadow-xs'
+                              : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
+                          }`}
+                          title="Toggle Satellite View"
+                        >
+                          <Layers size={13} />
+                          <span>{isSatelliteView ? 'Satellite' : 'Road'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsMapExpanded((e) => !e)}
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-all cursor-pointer"
+                          title={isMapExpanded ? 'Collapse' : 'Expand Fullscreen'}
+                        >
+                          {isMapExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-500 font-semibold">
-                        {coordsList.length} plotted stops
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setIsMapExpanded((expanded) => !expanded)}
-                        className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-black text-blue-700 transition-colors hover:bg-blue-50"
-                      >
-                        {isMapExpanded ? 'Close Map' : 'Expand Map'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsSatelliteView((satellite) => !satellite)}
-                        className={`rounded-lg border px-2 py-1 text-[10px] font-black transition-colors ${
-                          isSatelliteView
-                            ? 'border-blue-600 bg-blue-600 text-white'
-                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        {isSatelliteView ? 'Road View' : 'Satellite'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRoutePreference('shortest')}
-                        className={`rounded-lg border px-2 py-1 text-[10px] font-black transition-colors ${
-                          routePreference === 'shortest'
-                            ? 'border-blue-600 bg-blue-600 text-white'
-                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        Shortest
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRoutePreference('less_traffic')}
-                        className={`rounded-lg border px-2 py-1 text-[10px] font-black transition-colors ${
-                          routePreference === 'less_traffic'
-                            ? 'border-blue-600 bg-blue-600 text-white'
-                            : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
-                        }`}
-                      >
-                        Less Traffic
-                      </button>
-                      <span className="hidden xl:inline text-[10px] font-bold text-slate-400">
-                        {currentTrafficLabel} · ×{currentTrafficMultiplier.toFixed(2)}
-                      </span>
+                    {locationShareMessage && (
+                      <div className="flex items-center justify-between gap-2 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-[10px] font-bold text-blue-800">
+                        <span>{locationShareMessage}</span>
+                        <button type="button" onClick={() => setLocationShareMessage(null)} className="text-blue-500 hover:text-blue-900" aria-label="Dismiss location message"><X size={13} /></button>
+                      </div>
+                    )}
+
+                    {/* Secondary bar: Route optimization preference + live traffic tag */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/60">
+                        <button
+                          type="button"
+                          onClick={() => setRoutePreference('less_traffic')}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
+                            routePreference === 'less_traffic'
+                              ? 'bg-white text-blue-600 shadow-xs'
+                              : 'text-slate-500 hover:text-slate-900'
+                          }`}
+                        >
+                          ⚡ Less Traffic
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRoutePreference('shortest')}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
+                            routePreference === 'shortest'
+                              ? 'bg-white text-blue-600 shadow-xs'
+                              : 'text-slate-500 hover:text-slate-900'
+                          }`}
+                        >
+                          📍 Shortest
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>{currentTrafficLabel} (×{currentTrafficMultiplier.toFixed(1)})</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* OpenStreetMap canvas with route and numbered stop markers */}
-                  <div className={`relative w-full rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden ${
-                    isMapExpanded ? 'aspect-square h-auto' : 'h-80'
+                  <div className={`relative w-full rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden shadow-inner ${
+                    isMapExpanded ? 'aspect-square h-auto' : 'h-[360px]'
                   }`}>
                     <div ref={mapContainerRef} className="absolute inset-0 z-0" />
-                    {activeDayStops.filter((stop) => stop.coordinates).length > 1 && (
-                      <div className="absolute bottom-3 left-3 z-[400] rounded-lg border border-white/80 bg-white/95 px-2.5 py-1.5 text-[10px] font-black text-blue-700 shadow-md">
-                        Direction: start at {activeDayStops
-                          .filter((stop) => stop.coordinates)
-                          .map((stop, index) => `${index + 1}. ${stop.placeName}`)
-                          .join(' → ')}
+
+                    {/* Selected Stop Details Popover inside Map */}
+                    {selectedMapPinId && (
+                      <div className="absolute top-3 left-3 right-3 z-[400] bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-200/90 shadow-lg flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="w-6 h-6 rounded-full bg-[#E5293E] text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
+                            {activeDayStops.findIndex((s) => s.id === selectedMapPinId) + 1}
+                          </span>
+                          <div className="truncate">
+                            <span className="text-[9px] uppercase font-black text-rose-600 tracking-wider block">Selected Location</span>
+                            <strong className="font-extrabold text-slate-900 truncate block text-xs">
+                              {activeDayStops.find((s) => s.id === selectedMapPinId)?.placeName}
+                            </strong>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setSelectedMapPinId(null)}
+                          className="px-2 py-1 text-[11px] font-bold text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
+                        >
+                          Clear
+                        </button>
                       </div>
                     )}
                   </div>
 
-                  {/* Selected Stop Details Popover inside Map */}
-                  {selectedMapPinId && (
-                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs flex items-center justify-between">
-                      <div>
-                        <div className="text-[10px] uppercase font-bold text-blue-700">Selected Stop</div>
-                        <div className="font-bold text-slate-900">
-                          {activeDayStops.find((s) => s.id === selectedMapPinId)?.placeName}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setSelectedMapPinId(null)}
-                        className="text-[11px] text-slate-500 hover:text-slate-900"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Tabbed Explorer: Route Flow / Nearby Dining / Where to Stay */}
-                  <div className="space-y-3 pt-2 border-t border-slate-200">
-                    <div className="flex rounded-xl bg-slate-50 p-1 border border-slate-200 text-xs font-bold">
+                  {/* Tabbed Explorer: Circuit Flow / Nearby Dining / Where to Stay */}
+                  <div className="space-y-3 pt-1">
+                    <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/70 text-xs font-bold">
                       <button
                         type="button"
                         onClick={() => setRightPanelTab('flow')}
-                        className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer text-center ${
+                        className={`flex-1 py-2 rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                           rightPanelTab === 'flow'
-                            ? 'bg-blue-600 text-white font-black shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900'
+                            ? 'bg-white text-slate-900 font-black shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
-                        Route Flow
+                        <Route size={13} className={rightPanelTab === 'flow' ? 'text-blue-600' : ''} />
+                        <span>Circuit Flow</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setRightPanelTab('dining')}
-                        className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
+                        className={`flex-1 py-2 rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                           rightPanelTab === 'dining'
-                            ? 'bg-blue-600 text-white font-black shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900'
+                            ? 'bg-white text-slate-900 font-black shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
-                        <span>🍛 Dining</span>
-                        <span className="text-[10px] opacity-75">({destinationData?.foodSpots?.length || 0})</span>
+                        <UtensilsCrossed size={13} className={rightPanelTab === 'dining' ? 'text-amber-600' : ''} />
+                        <span>Dining ({destinationData?.foodSpots?.length || 0})</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setRightPanelTab('stays')}
-                        className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
+                        className={`flex-1 py-2 rounded-xl transition-all cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                           rightPanelTab === 'stays'
-                            ? 'bg-blue-600 text-white font-black shadow-xs'
-                            : 'text-slate-500 hover:text-slate-900'
+                            ? 'bg-white text-slate-900 font-black shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
-                        <span>🏨 Stays</span>
-                        <span className="text-[10px] opacity-75">({destinationData?.stays?.length || 0})</span>
+                        <Building2 size={13} className={rightPanelTab === 'stays' ? 'text-rose-600' : ''} />
+                        <span>Stays ({destinationData?.stays?.length || 0})</span>
                       </button>
                     </div>
 
                     {/* Tab 1: Route Transit Flow */}
                     {rightPanelTab === 'flow' && (
-                      <div className="space-y-2 p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
-                        <div className="flex items-center gap-2 font-bold text-purple-700">
-                          <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-                          <span>Start Base: {plannedTrip.selectedHotel?.name || 'Hotel Base'}</span>
+                      <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-xs space-y-2 max-h-72 overflow-y-auto pr-1">
+                        {/* Hotel Start Point */}
+                        <div className="flex items-center gap-2.5 p-2 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+                          <div className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                            <Building2 size={13} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[10px] font-black uppercase text-indigo-600 tracking-wide">Departure Point</div>
+                            <div className="font-bold text-slate-900 truncate">
+                              {plannedTrip.selectedHotel?.name || 'Hotel Base'}
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400">~{plannedTrip.days[activeDayIdx]?.startTime || '08:30 AM'}</span>
                         </div>
 
-                        {activeDayStops.map((stop) => (
-                          <div key={stop.id} className="flex items-center gap-2 text-slate-700 pl-4 text-[11px]">
-                            <span className="text-slate-400">
-                              ↓ {stop.travelFromPrevMin > 0 ? `${stop.travelFromPrevMin}m` : 'start'}
-                            </span>
-                            <span className={`font-bold truncate ${stop.isMealStop ? 'text-emerald-600' : 'text-blue-700'}`}>
-                              {stop.isMealStop ? '🍴 Lunch: Regional Dining' : stop.placeName}
-                            </span>
-                          </div>
-                        ))}
+                        {/* Stops in sequence */}
+                        {activeDayStops.map((stop, sIdx) => {
+                          const isSelected = selectedMapPinId === stop.id
+                          return (
+                            <div key={stop.id} className="space-y-1">
+                              <div className="flex items-center gap-2 pl-4 text-[10px] font-semibold text-slate-400">
+                                <span className="w-1 h-3 border-l-2 border-dashed border-slate-300 ml-1.5" />
+                                <span>
+                                  ↓ {stop.travelFromPrevMin > 0 ? `~${stop.travelFromPrevMin}m transit (${stop.distanceFromPrevKm} km)` : 'morning departure'}
+                                </span>
+                              </div>
+                              <div
+                                onClick={() => setSelectedMapPinId(stop.id)}
+                                className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-400/20 shadow-xs'
+                                    : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+                                }`}
+                              >
+                                <span className={`w-5 h-5 rounded-md font-black text-[10px] flex items-center justify-center shrink-0 ${
+                                  stop.isMealStop
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : isSelected
+                                      ? 'bg-blue-600 text-white'
+                                      : 'bg-slate-100 text-slate-700'
+                                }`}>
+                                  {stop.isMealStop ? '🍴' : sIdx + 1}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-bold text-slate-900 truncate text-[11px]">
+                                    {stop.isMealStop ? 'Regional Culinary Break' : stop.placeName}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 font-medium">
+                                    {stop.timeSlot} · {stop.durationMin} mins
+                                  </div>
+                                </div>
+                                {stop.estimatedCost > 0 && (
+                                  <span className="text-[10px] font-bold text-emerald-600 shrink-0">
+                                    ₹{stop.estimatedCost}
+                                  </span>
+                                )}
+                              {sIdx === 0 && (() => {
+                                const isSpecialityOpen = expandedLocalSpecialityStopId === stop.id
+                                const localSpecialities = (destinationData?.foodSpots || []).slice(0, 3)
+                                return (
+                                  <div className="ml-8 rounded-xl border border-emerald-200 bg-emerald-50/60 overflow-hidden">
+                                    <button type="button" onClick={() => setExpandedLocalSpecialityStopId(isSpecialityOpen ? null : stop.id)} className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-[10px] font-black text-emerald-900 cursor-pointer">
+                                      <span>Local Speciality near {stop.placeName}</span>
+                                      {isSpecialityOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </button>
+                                    {isSpecialityOpen && (
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-emerald-200 p-2">
+                                        {localSpecialities.map((spot) => (
+                                          <div key={spot.id} className="rounded-lg border border-emerald-100 bg-white p-2">
+                                            <img src={spot.image} alt={spot.name} className="h-16 w-full rounded-md object-cover" />
+                                            <div className="mt-1 flex items-center justify-between gap-1"><div className="text-[10px] font-black text-slate-900 truncate">{spot.name}</div><span className="shrink-0 text-[9px] font-black text-amber-600">★ {spot.rating}</span></div>
+                                            <p className="mt-0.5 text-[9px] leading-3 text-slate-500">{spot.mustTryDishes.slice(0, 2).join(' · ')}</p>
+                                            <span className="mt-1 inline-flex text-[8px] font-black uppercase text-emerald-700">✓ Local pick</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })()}
+                              </div>
+                              {(() => {
+                                const nextStop = activeDayStops[sIdx + 1]
+                                const isExpanded = expandedArtisanStopId === stop.id
+                                return (
+                                  <div className="ml-8 rounded-xl border border-amber-200 bg-amber-50/60 overflow-hidden">
+                                    <button type="button" onClick={() => setExpandedArtisanStopId(isExpanded ? null : stop.id)} className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-[10px] font-black text-amber-900 cursor-pointer">
+                                      <span>Nearby verified artisan shops {nextStop ? `before ${nextStop.placeName}` : `near ${stop.placeName}`}</span>
+                                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </button>
+                                    {isExpanded && (
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-amber-200 p-2">
+                                        {artisanShopProfiles.map(([name, description, image]) => (
+                                          <div key={name} className="rounded-lg border border-amber-100 bg-white p-2">
+                                            <img src={image} alt={name} className="h-16 w-full rounded-md object-cover" />
+                                            <div className="mt-1 text-[10px] font-black text-slate-900">{name}</div>
+                                            <p className="mt-0.5 text-[9px] leading-3 text-slate-500">{description}</p>
+                                            <span className="mt-1 inline-flex text-[8px] font-black uppercase text-emerald-700">✓ Verified by Trippin' Bharat</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })()}
+                            </div>
+                          )
+                        })}
 
-                        <div className="flex items-center gap-2 font-bold text-amber-700 pl-4 pt-1 text-[11px]">
-                          <span>↓ ~15m</span>
-                          <span>Evening: Dinner & Return to Base</span>
+                        {/* Evening Wrap */}
+                        <div className="pt-1">
+                          <div className="flex items-center gap-2 pl-4 text-[10px] font-semibold text-slate-400">
+                            <span className="w-1 h-3 border-l-2 border-dashed border-slate-300 ml-1.5" />
+                            <span>↓ ~15m transit</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 p-2 bg-amber-50/70 border border-amber-200/80 rounded-xl text-amber-900 mt-1">
+                            <Moon size={13} className="text-amber-600 shrink-0" />
+                            <span className="text-[11px] font-bold truncate">Evening Dinner & Return to Base</span>
+                          </div>
                         </div>
                       </div>
                     )}
 
-                    {/* Tab 2: Nearby Dining Directory */}
+                    {/* Tab 2: Dining Directory */}
                     {rightPanelTab === 'dining' && (
-                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1 no-scrollbar text-xs">
+                      <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 no-scrollbar text-xs">
                         {(destinationData?.foodSpots || []).map((spot) => (
                           <div
                             key={spot.id}
-                            className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-blue-300 transition-all"
+                            className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5 hover:border-amber-300 transition-all shadow-2xs"
                           >
                             <div className="flex items-center gap-2.5">
                               <img
                                 src={spot.image}
                                 alt={spot.name}
-                                className="w-10 h-10 rounded-lg object-cover shrink-0"
+                                className="w-11 h-11 rounded-xl object-cover border border-slate-200/80 shrink-0"
                                 onError={(e) => {
-                                  ;(e.currentTarget as HTMLImageElement).src = '/images/places/ram-jhula.jpg'
+                                  if (destinationData?.heroBanner) {
+                                    ;(e.currentTarget as HTMLImageElement).src = destinationData.heroBanner
+                                  }
                                 }}
                               />
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between">
                                   <span className="font-black text-slate-900 text-xs truncate">{spot.name}</span>
-                                  <span className="text-[10px] font-bold text-amber-400 shrink-0">★ {spot.rating}</span>
+                                  <span className="text-[10px] font-black text-amber-600 shrink-0">★ {spot.rating}</span>
                                 </div>
                                 <div className="text-[10px] text-slate-500 truncate">{spot.cuisineType}</div>
                               </div>
                             </div>
-                            <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-200">
-                              <span className="text-emerald-400 font-bold">₹{spot.priceForTwo} for two</span>
-                              <span className="text-slate-500">{spot.isVeg ? '🟢 Pure Veg' : 'Multi-Cuisine'}</span>
+                            <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-slate-200/60">
+                              <span className="text-emerald-700 font-black">₹{spot.priceForTwo} for two</span>
+                              <span className="text-slate-500 font-medium">{spot.isVeg ? '🟢 Pure Veg' : 'Multi-Cuisine'}</span>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {/* Tab 3: Stays & Hotel Options */}
+                    {/* Tab 3: Stays Directory */}
                     {rightPanelTab === 'stays' && (
-                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1 no-scrollbar text-xs">
+                      <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 no-scrollbar text-xs">
                         {(destinationData?.stays || []).map((stay) => {
                           const isBase = plannedTrip.selectedHotel?.id === stay.id
                           return (
                             <div
                               key={stay.id}
                               onClick={() => handleQuickChangeHotel(stay.id)}
-                              className={`p-2.5 rounded-xl border transition-all cursor-pointer space-y-1.5 ${
+                              className={`p-2.5 rounded-2xl border transition-all cursor-pointer space-y-1.5 shadow-2xs ${
                                 isBase
-                                  ? 'bg-blue-50 border-blue-500'
-                                  : 'bg-slate-50 border-slate-200 hover:border-blue-300'
+                                  ? 'bg-blue-50/80 border-blue-400 ring-1 ring-blue-400/20'
+                                  : 'bg-slate-50 border-slate-200/80 hover:border-blue-300'
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-black text-slate-900 text-xs truncate">{stay.name}</span>
-                                <span className="text-[10px] font-bold text-amber-400">★ {stay.rating}</span>
+                                <span className="text-[10px] font-black text-amber-600">★ {stay.rating}</span>
                               </div>
                               <div className="flex items-center justify-between text-[10px]">
-                                <span className="text-emerald-400 font-bold">                                ₹{Number(stay.pricePerNight || 0).toLocaleString()} / night</span>
+                                <span className="text-emerald-700 font-black">₹{Number(stay.pricePerNight || 0).toLocaleString()} / night</span>
                                 <button
                                   type="button"
-                                  className={`text-[9px] font-black px-2 py-0.5 rounded ${
-                                    isBase ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+                                  className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-all ${
+                                    isBase ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                                   }`}
                                 >
                                   {isBase ? 'Active Base' : 'Set as Base'}
@@ -3042,7 +3740,45 @@ export default function BuildTripPage() {
                       </div>
                     )}
                   </div>
-                </div>
+
+                  {selectedArtifactShop && (
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
+                      <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl">
+                        <button type="button" onClick={() => setSelectedArtifactShop(null)} className="sticky top-4 z-20 float-right mr-4 -mb-12 rounded-xl bg-slate-950/65 p-2 text-white backdrop-blur transition-colors hover:bg-slate-950/85" aria-label="Close shop details"><X size={20} /></button>
+                        <div className="relative h-56 overflow-hidden rounded-t-3xl">
+                          <img src={selectedArtifactShop.image} alt={selectedArtifactShop.name} className="h-full w-full object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
+                          <div className="absolute bottom-5 left-6 right-6 flex items-end justify-between text-white">
+                            <div><span className="text-[10px] font-black uppercase tracking-widest text-emerald-300">✓ Verified by Trippin' Bharat</span><h3 className="mt-1 text-2xl font-black">{selectedArtifactShop.name}</h3></div>
+                          </div>
+                        </div>
+                        <div className="space-y-5 p-5 sm:p-7">
+                          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            <div className="rounded-2xl bg-amber-50 p-3"><div className="text-[10px] font-black uppercase text-amber-700">Speciality</div><strong className="text-sm">{selectedArtifactShop.specialty}</strong></div>
+                            <div className="rounded-2xl bg-emerald-50 p-3"><div className="text-[10px] font-black uppercase text-emerald-700">Status</div><strong className="text-sm">Verified</strong></div>
+                            <div className="rounded-2xl bg-blue-50 p-3"><div className="text-[10px] font-black uppercase text-blue-700">Location</div><strong className="text-sm">{destinationData?.name}</strong></div>
+                            <div className="rounded-2xl bg-violet-50 p-3"><div className="text-[10px] font-black uppercase text-violet-700">Craft type</div><strong className="text-sm">Local artisan</strong></div>
+                          </div>
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="rounded-2xl border border-slate-200 p-4"><h4 className="mb-2 text-sm font-black text-slate-900">About the shop</h4><p className="text-xs leading-5 text-slate-600">{selectedArtifactShop.description}. This verified local shop works with regional makers and helps preserve traditional techniques through responsible tourism.</p></div>
+                            <div className="rounded-2xl border border-slate-200 p-4"><h4 className="mb-2 text-sm font-black text-slate-900">What you can find</h4><div className="flex flex-wrap gap-2">{['Handmade products', 'Artisan-made', 'Authenticity checked', 'Gift packaging'].map((item) => <span key={item} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">{item}</span>)}</div></div>
+                          </div>
+                          <div className="rounded-2xl bg-slate-50 p-4"><h4 className="mb-2 text-sm font-black text-slate-900">Visitor information</h4><div className="grid grid-cols-2 gap-3 text-xs text-slate-600"><span>📍 Near your planned route in {destinationData?.name}</span><span>🕘 Open daily: {formatOpeningWindow(selectedArtifactShop.openingMinutes, selectedArtifactShop.closingMinutes)}</span><span>📞 Shop support: +91 1800 123 4567</span><span>💳 UPI, cards, and cash accepted</span></div></div>
+                          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4"><h4 className="mb-1 text-sm font-black text-blue-950">Route fit for this day</h4><p className="text-xs leading-5 text-blue-900">About {selectedArtifactShop.nearestRouteDistanceKm ?? 0} km from your hotel/route. Trippin' Bharat will place this stop in the shortest feasible sequence and avoid arriving before opening.</p></div>
+                          <div><h4 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-900"><Images size={18} className="text-amber-600" /> Shop gallery</h4><div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{[selectedArtifactShop.image, ...localArtifactShops.filter((shop) => shop.name !== selectedArtifactShop.name).slice(0, 5).map((shop) => shop.image)].map((image, index) => <button type="button" key={`${image}-${index}`} onClick={() => setSelectedArtifactImage(image)} className="group relative overflow-hidden rounded-xl cursor-zoom-in" aria-label={`Open ${selectedArtifactShop.name} gallery image ${index + 1}`}><img src={image} alt={`${selectedArtifactShop.name} gallery ${index + 1}`} className="h-32 w-full rounded-xl object-cover transition-transform group-hover:scale-105" /><span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-950/0 text-white opacity-0 transition-all group-hover:bg-slate-950/25 group-hover:opacity-100"><Maximize2 size={20} /></span></button>)}</div></div>
+                          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-900"><strong>Shop responsibly:</strong> Ask about the maker, materials, and care instructions. Buying directly from verified artisans helps keep craft traditions alive.</div>
+                          <button type="button" onClick={() => handleAddArtifactShopToCurrentDay(selectedArtifactShop)} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-600 py-3 text-sm font-black text-white hover:bg-amber-700"><Plus size={17} /> Add to Day {activeDayIdx + 1} tour</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {selectedArtifactImage && (
+                    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm" onClick={() => setSelectedArtifactImage(null)}>
+                      <button type="button" onClick={() => setSelectedArtifactImage(null)} className="absolute right-5 top-5 rounded-xl bg-white/15 p-3 text-white backdrop-blur hover:bg-white/25" aria-label="Close enlarged image"><X size={22} /></button>
+                      <img src={selectedArtifactImage} alt={`${selectedArtifactShop?.name || 'Shop'} enlarged gallery`} className="max-h-[88vh] max-w-[94vw] rounded-2xl object-contain shadow-2xl" onClick={(event) => event.stopPropagation()} />
+                    </div>
+                  )}
+                  </div>
 
                 {/* Spending & Budget Breakdown Widget */}
                 <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-4">
@@ -3082,7 +3818,7 @@ export default function BuildTripPage() {
                         <span>Plan is ₹{plannedTrip.budgetBreakdown.difference.toLocaleString()} over budget</span>
                       </div>
                       <p className="text-[11px] leading-relaxed">
-                        {plannedTrip.budgetBreakdown.savingsSuggestions[0]?.title}
+                        {plannedTrip.budgetBreakdown.savingsSuggestions?.[0]?.title || 'Consider choosing budget-friendly transit or stays.'}
                       </p>
                     </div>
                   )}
@@ -3091,6 +3827,7 @@ export default function BuildTripPage() {
             </div>
 
             {/* ── Bottom Action Toolbar ── */}
+            {!selectedArtifactShop && (
             <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-lg flex flex-wrap items-center justify-between gap-4 sticky bottom-4 z-30">
               <div className="flex items-center gap-2">
                 <button
@@ -3135,9 +3872,140 @@ export default function BuildTripPage() {
                 </button>
               </div>
             </div>
+            )}
           </div>
         )}
       </main>
+
+      {showSOSPanel && (
+        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md">
+          <div className="absolute inset-0" onClick={() => setShowSOSPanel(false)} />
+          <div className="relative z-10 w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-rose-600">Emergency assistance</div>
+                <h3 className="mt-1 text-xl font-black text-slate-900">SOS</h3>
+                <p className="mt-1 text-xs text-slate-500">Quick actions for urgent help while you are on the route.</p>
+              </div>
+              <button type="button" onClick={() => setShowSOSPanel(false)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900" aria-label="Close SOS panel">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <button
+                type="button"
+                onClick={shareLiveLocation}
+                className="flex w-full items-center justify-between rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-left text-sm font-black text-blue-700 hover:bg-blue-100"
+              >
+                <span className="flex items-center gap-2"><LocateFixed size={16} /> Share live location</span>
+                <span className="text-[10px] font-black uppercase">{isSharingLocation ? 'On' : 'Send link'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => triggerEmergencyCall('112')}
+                className="flex w-full items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-left text-sm font-black text-rose-700 hover:bg-rose-100"
+              >
+                <span className="flex items-center gap-2"><Phone size={16} /> Call emergency 112</span>
+                <span className="text-[10px] font-black uppercase">Immediate</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => triggerEmergencyCall('108')}
+                className="flex w-full items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm font-black text-amber-700 hover:bg-amber-100"
+              >
+                <span className="flex items-center gap-2"><AlertCircle size={16} /> Call medical 108</span>
+                <span className="text-[10px] font-black uppercase">Ambulance</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showGuidePanel && (
+        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md">
+          <div className="absolute inset-0" onClick={() => setShowGuidePanel(false)} />
+          <div className="relative z-10 w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-blue-600">Verified local experts</div>
+                <h3 className="mt-1 text-xl font-black text-slate-900">Book a Guide</h3>
+                <p className="mt-1 text-xs text-slate-500">Choose a guide for your {plannedTrip?.destinationName || 'journey'} route.</p>
+              </div>
+              <button type="button" onClick={() => setShowGuidePanel(false)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Close guide booking panel"><X size={18} /></button>
+            </div>
+            <div className="mt-4 space-y-3">
+              {[
+                ['Heritage storyteller', 'Monuments, history & local legends', '₹1,200 / day'],
+                ['Food & market guide', 'Street food, bazaars & artisan lanes', '₹900 / day'],
+                ['Family-friendly guide', 'Flexible pace with local activities', '₹1,000 / day'],
+              ].map(([title, description, price]) => (
+                <button key={title} type="button" onClick={() => { setShowGuidePanel(false); setSaveToast(`${title} request noted for Day ${activeDayIdx + 1}. Our verified guide team will contact you.`); window.setTimeout(() => setSaveToast(null), 3500) }} className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 p-3 text-left transition-colors hover:border-blue-400 hover:bg-blue-50">
+                  <span><strong className="block text-sm text-slate-900">{title}</strong><span className="text-[11px] text-slate-500">{description}</span></span>
+                  <span className="shrink-0 text-[10px] font-black text-blue-700">{price}</span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-4 rounded-xl bg-emerald-50 p-3 text-[10px] font-bold leading-4 text-emerald-800">All guides are verified by Trippin' Bharat. Final availability and confirmation will be shared before booking.</p>
+          </div>
+        </div>
+      )}
+
+      {selectedHotelDetails && currentStep !== 7 && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white shadow-2xl">
+            <div className="relative h-56 overflow-hidden rounded-t-3xl">
+              <img src={selectedHotelDetails.image} alt={selectedHotelDetails.name} className="h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
+              <div className="absolute bottom-5 left-6 right-6 flex items-end justify-between text-white">
+                <div><p className="text-[10px] font-black uppercase tracking-widest text-amber-300">{selectedHotelDetails.typeLabel || 'Hotel profile'}</p><h3 className="mt-1 text-2xl font-black">{selectedHotelDetails.name}</h3></div>
+                <button type="button" onClick={() => setSelectedHotelDetails(null)} className="rounded-xl bg-white/20 p-2 backdrop-blur" aria-label="Close stay details"><X size={20} /></button>
+              </div>
+            </div>
+            <div className="space-y-5 p-5 sm:p-7">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-2xl bg-blue-50 p-3"><div className="text-[10px] font-black uppercase text-blue-600">From</div><strong className="text-lg">₹{selectedHotelDetails.pricePerNight.toLocaleString()}<span className="text-[10px] font-normal"> / night</span></strong></div>
+                <div className="rounded-2xl bg-amber-50 p-3"><div className="text-[10px] font-black uppercase text-amber-600">Rating</div><strong className="text-lg">★ {selectedHotelDetails.rating.toFixed(1)}</strong></div>
+                <div className="rounded-2xl bg-emerald-50 p-3"><div className="text-[10px] font-black uppercase text-emerald-600">Reviews</div><strong className="text-lg">{(selectedHotelDetails.reviewsCount || 0).toLocaleString()}</strong></div>
+                <div className="rounded-2xl bg-violet-50 p-3"><div className="text-[10px] font-black uppercase text-violet-600">Category</div><strong className="text-sm">{selectedHotelDetails.tier === 'ultra_luxury' ? 'Ultra Luxury' : selectedHotelDetails.tier === 'luxury' ? 'Luxury' : selectedHotelDetails.tier === 'comfort' ? 'Medium Range' : 'Low Cost'}</strong></div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 p-4 text-xs text-slate-600"><h4 className="mb-3 text-sm font-black text-slate-900">Hotel information</h4><p className="mb-2 flex gap-2"><MapPin size={15} className="text-blue-600" />{selectedHotelDetails.address}</p><p className="mb-2 flex gap-2"><Phone size={15} className="text-blue-600" />{selectedHotelDetails.contactPhone || '+91 1800 123 4567'}</p><p className="flex gap-2"><UserRound size={15} className="text-blue-600" />Owner: {selectedHotelDetails.ownerName || 'Verified hotel management'}</p></div>
+                <div className="rounded-2xl border border-slate-200 p-4"><h4 className="mb-3 text-sm font-black text-slate-900">Amenities</h4><div className="flex flex-wrap gap-2">{selectedHotelDetails.amenities.map((amenity) => <span key={amenity} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">{amenity}</span>)}</div></div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2"><div className="rounded-2xl bg-slate-50 p-4"><h4 className="mb-2 text-sm font-black">About this stay</h4><p className="text-xs leading-5 text-slate-600">{selectedHotelDetails.description || `${selectedHotelDetails.name} offers a comfortable base for exploring ${destinationData?.name || 'the destination'}.`}</p></div><div className="rounded-2xl bg-slate-50 p-4"><h4 className="mb-2 text-sm font-black">Stay details</h4><div className="grid grid-cols-2 gap-3 text-xs"><span>Check-in <strong className="block">2:00 PM</strong></span><span>Check-out <strong className="block">11:00 AM</strong></span><span>Capacity <strong className="block">2 guests / room</strong></span><span>Booking <strong className="block">Instant confirmation</strong></span></div></div></div>
+              <div className="rounded-2xl border border-slate-200 p-4 text-xs text-slate-600">
+                <h4 className="mb-2 text-sm font-black text-slate-900">Guest policies & nearby sights</h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <p>• Government ID required at check-in</p>
+                    <p>• Cancellation up to 24 hours before arrival</p>
+                    <p>• Quiet hours: 10:00 PM – 7:00 AM</p>
+                    <p>• 24-hour front desk and local transfer assistance</p>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedHotelDetails.distanceToItineraryHighlights.length > 0
+                      ? selectedHotelDetails.distanceToItineraryHighlights.slice(0, 3).map((item) => (
+                        <p key={item.placeId}><strong className="text-slate-800">{item.placeName}</strong> · {item.distanceKm} km · {item.drivingTimeMin} min drive</p>
+                      ))
+                      : <p>Conveniently located near the destination's key sightseeing spots.</p>}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="mb-3 flex items-center gap-2"><Images size={18} className="text-blue-600" /><h4 className="text-sm font-black">Gallery</h4></div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{Array.from(new Set([selectedHotelDetails.image, ...(selectedHotelDetails.galleryImages || []), ...(destinationData?.heroGallery || [])])).slice(0, 8).map((image, index) => <img key={`${image}-${index}`} src={image} alt={`${selectedHotelDetails.name} gallery ${index + 1}`} className="h-28 w-full rounded-xl object-cover" onError={(event) => { event.currentTarget.src = selectedHotelDetails.image }} />)}</div>
+                {(selectedHotelDetails.galleryVideos || []).length > 0
+                  ? <div className="mt-4 grid gap-3 sm:grid-cols-2">{selectedHotelDetails.galleryVideos?.map((video) => <iframe key={video} className="h-48 w-full rounded-xl border border-slate-200" src={video} title={`${selectedHotelDetails.name} video`} allowFullScreen />)}</div>
+                  : <div className="mt-4 flex items-center gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-500"><Play size={15} className="text-blue-600" /> Video tours will appear here when provided by the hotel.</div>}
+              </div>
+              <button type="button" onClick={() => { handleQuickChangeHotel(selectedHotelDetails.id); setSelectedHotelDetails(null) }} className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-black text-white hover:bg-blue-700">Set as Trip Base</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Add Place Modal ── */}
       <AnimatePresence>
@@ -3183,7 +4051,7 @@ export default function BuildTripPage() {
                           <span>{place.categoryLabel}</span>
                           {place.bestTimeToVisit && (
                             <span className="text-amber-700 font-medium truncate">
-                              · Best: {place.bestTimeToVisit.split('(')[0].trim()}
+                              · Best: {formatBestTimeToVisit(place.bestTimeToVisit)}
                             </span>
                           )}
                         </div>

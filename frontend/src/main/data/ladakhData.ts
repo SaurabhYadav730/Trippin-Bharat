@@ -41,9 +41,9 @@ export const ladakhData: DestinationData = {
     },
     {
       styleId: 'ancient-gompas',
-      styleTitle: 'Ancient Monasteries & Gompas',
-      description: 'Cliffside Tibetan monasteries, morning prayer chants, and Buddhist art.',
-      recommendedPlaceIds: ['thiksey-monastery', 'pangong-tso'],
+      styleTitle: 'Ancient Monasteries & Buddhist Heritage',
+      description: 'Cliffside Tibetan monasteries, morning prayer chants, ancient silk thangkas, and Buddhist sacred art.',
+      recommendedPlaceIds: ['thiksey-monastery', 'hemis-monastery', 'pangong-tso'],
     },
   ],
   places: [
@@ -210,6 +210,51 @@ export const ladakhData: DestinationData = {
       },
       nearbyWithin1Km: [],
       nearbyWithin5Km: [],
+    },
+    {
+      id: 'hemis-monastery',
+      name: 'Hemis Gompa & Ancient Museum',
+      hindiName: 'हेमिस गोम्पा एवं प्राचीन संग्रहालय',
+      tagline: 'Largest 1672 AD Himalayan monastery housing priceless gold statues & sacred Thangkas',
+      category: 'temple',
+      categoryLabel: 'Imperial Drukpa Gompa & Museum',
+      rating: 4.9,
+      reviewCount: 19800,
+      images: [
+        '/images/places/hemis-monastery.jpg',
+        '/images/places/thiksey-monastery.jpg',
+      ],
+      description:
+        'Tucked within a scenic gorge 45 kilometers south of Leh, Hemis is the largest and wealthiest monastery in Ladakh. Re-established in 1672 by the king Sengge Namgyal, it houses an extraordinary collection of ancient golden statues, stupas encrusted with semi-precious stones, and a world-renowned museum of Tibetan Buddhist sacred art.',
+      coordinates: { lat: 33.9125, lng: 77.7067 },
+      entryFee: {
+        indian: 50,
+        foreign: 100,
+      },
+      timings: '8:00 AM – 6:00 PM (Daily, museum closes 1:00 PM – 2:00 PM)',
+      bestTimeToVisit: '9:00 AM – 12:00 PM (Morning prayer chants in the main Dukhang assembly hall)',
+      timeRequired: '2 Hours',
+      isAsiVerified: true,
+      journeyLens: {
+        history:
+          'Dating back to the 11th century and linked to the master Naropa. Reconstructed in 1672 under royal Namgyal patronage, it belongs to the Drukpa Lineage of Kagyu Buddhism.',
+        architecturalStyle: 'Traditional Tibetan Fortress-Gompa Architecture',
+        architectureHighlights: [
+          'Dukhang Barpa (Main Assembly Hall) with 17th-century frescoes and massive wooden prayer drums',
+          'Vast stone courtyard hosting the world-famous annual Hemis Tsechu festival with masked Cham dances',
+          'Largest silk Thangka of Guru Padmasambhava in the world, unfurled only once every 12 years',
+        ],
+        legendsAndStories: [
+          'Historical lore recounts that secret ancient manuscripts detailing travels of spiritual masters through the Silk Road were preserved in the subterranean vaults of Hemis.',
+        ],
+        bestPhotoSpots: ['Upper roof terrace framing prayer flags fluttering against the rugged Himalayan cliff backdrop'],
+        audioGuideAvailable: true,
+      },
+      nearbyWithin1Km: [],
+      nearbyWithin5Km: [
+        { id: 'stakna-monastery', name: 'Stakna Monastery Tiger Nose Rock', category: 'attraction', distanceKm: 12.0, travelTimeMin: 22 },
+        { id: 'thiksey-monastery', name: 'Thiksey Monastery', category: 'attraction', distanceKm: 18.0, travelTimeMin: 30 },
+      ],
     },
   ],
   stays: [

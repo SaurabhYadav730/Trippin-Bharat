@@ -1,7 +1,7 @@
 {
-  "name": "yatra-backend",
+  "name": "trippin-bharat-backend",
   "version": "1.0.0",
-  "description": "Enterprise Tourism Intelligence & Itinerary API for Yātra (SIH 2026)",
+  "description": "Enterprise Tourism Intelligence & Itinerary API for Trippin' Bharat (SIH 2026)",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
@@ -16,7 +16,7 @@
     "express",
     "typescript"
   ],
-  "author": "Yātra Team",
+  "author": "Trippin' Bharat Team",
   "license": "MIT",
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -69,7 +69,9 @@ export default function PlaceDashboardModal({
               alt={place.name}
               className="w-full h-full object-cover object-center"
               onError={(e) => {
-                ;(e.target as HTMLImageElement).src = '/images/places/city-palace.jpg'
+                if (place.images[1]) {
+                  ;(e.target as HTMLImageElement).src = place.images[1]
+                }
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-black/30" />

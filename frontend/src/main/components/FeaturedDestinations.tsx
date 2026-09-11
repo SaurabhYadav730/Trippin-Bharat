@@ -191,7 +191,10 @@ export default function FeaturedDestinations() {
     : destinationCards.filter(d => d.category === selectedCategory)
 
   return (
-    <section id="destinations" className="py-20 bg-slate-50">
+    <section id="destinations" className="relative pb-14 sm:pb-18 bg-[#F8FAFC]">
+      {/* ── Seamless blend transition after the Hero screen ── */}
+      <div className="w-full h-24 sm:h-36 bg-gradient-to-b from-slate-950 via-slate-900/35 to-[#F8FAFC] pointer-events-none mb-6 sm:mb-8" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -255,7 +258,7 @@ export default function FeaturedDestinations() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/places/amber-fort.jpg'
+                    ;(e.target as HTMLElement).style.opacity = '0.7'
                   }}
                 />
                 

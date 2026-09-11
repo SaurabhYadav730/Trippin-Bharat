@@ -182,7 +182,7 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
             <div className="absolute right-0 mt-2 w-64 bg-white border border-[#E5E7EB] rounded-2xl shadow-xl p-3 text-xs space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="pb-2 border-b border-[#E5E7EB]">
                 <div className="font-bold text-[#1F2937]">Saurabh Admin</div>
-                <div className="text-[10px] text-[#6B7280]">saurabh@yatra.internal</div>
+                <div className="text-[10px] text-[#6B7280]">saurabh@trippinbharat.internal</div>
                 <div className="text-[10px] text-emerald-600 font-medium mt-1">2 Active Sessions</div>
               </div>
 

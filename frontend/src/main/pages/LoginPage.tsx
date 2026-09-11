@@ -129,11 +129,13 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <a href="/" className="flex items-center gap-2.5 group">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-red-600 via-rose-600 to-red-500 flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-200">
-                <Compass size={22} strokeWidth={2.5} />
-              </div>
+              <img
+                src="/logo.jpg"
+                alt="Trippin' Bharat"
+                className="w-11 h-11 rounded-full object-cover shadow-lg group-hover:scale-105 transition-transform duration-200 border-2 border-white/20"
+              />
               <div className="flex flex-col">
-                <span className="font-black text-2xl tracking-tight text-white leading-none">Yātra</span>
+                <span className="font-black text-2xl tracking-tight text-white leading-none">Trippin' Bharat</span>
                 <span className="text-[10px] font-bold tracking-widest text-slate-300 uppercase mt-0.5">Discover India</span>
               </div>
             </a>
@@ -177,11 +179,13 @@ export default function LoginPage() {
 
         {/* Mobile logo */}
         <div className="lg:hidden flex items-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white">
-            <Compass size={20} strokeWidth={2.5} />
-          </div>
+          <img
+            src="/logo.jpg"
+            alt="Trippin' Bharat"
+            className="w-10 h-10 rounded-full object-cover shadow-md border border-slate-200"
+          />
           <div>
-            <div className="font-black text-xl text-slate-900">Yātra</div>
+            <div className="font-black text-xl text-slate-900">Trippin' Bharat</div>
             <div className="text-[9px] font-bold tracking-widest text-slate-500 uppercase">Discover India</div>
           </div>
         </div>
@@ -196,7 +200,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-black text-slate-900 leading-tight">
               Welcome back to<br />
               <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #E5293E, #C0392B)' }}>
-                Yātra
+                Trippin' Bharat
               </span>
             </h1>
             <p className="text-slate-500 text-sm mt-2 font-medium">
@@ -332,7 +336,7 @@ export default function LoginPage() {
 
           {/* Sign up link */}
           <p className="text-center text-sm text-slate-500 mt-8 font-medium">
-            New to Yātra?{' '}
+            New to Trippin' Bharat?{' '}
             <Link to="/signup" className="text-red-600 hover:text-red-700 font-black transition-colors">
               Create an account
             </Link>
